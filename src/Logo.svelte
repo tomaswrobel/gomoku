@@ -1,0 +1,27 @@
+<script lang="ts">
+	let { class: className = "" }: { class?: string } = $props();
+</script>
+
+<svg viewBox="0 0 32 32" class={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+	<rect
+		x="1"
+		y="1"
+		width="30"
+		height="30"
+		rx="7"
+		fill="#dcb35c"
+		stroke="#5c4326"
+		stroke-width="1.5"
+	/>
+	<g stroke="#5c4326" stroke-width="1.2" stroke-linecap="round">
+		<line x1="9" y1="7" x2="9" y2="25" />
+		<line x1="16" y1="7" x2="16" y2="25" />
+		<line x1="23" y1="7" x2="23" y2="25" />
+		<line x1="7" y1="9" x2="25" y2="9" />
+		<line x1="7" y1="16" x2="25" y2="16" />
+		<line x1="7" y1="23" x2="25" y2="23" />
+	</g>
+	<circle cx="9" cy="9" r="3.1" fill="#1a1a1a" />
+	<circle cx="16" cy="16" r="3.3" fill="#f5f5f5" stroke="#1a1a1a" stroke-width="0.6" />
+	<circle cx="23" cy="23" r="3.1" fill="#1a1a1a" />
+</svg>

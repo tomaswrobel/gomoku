@@ -1,0 +1,35 @@
+{
+	"name": "gomoku",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "Tomáš Wróbel",
+		"email": "mail@tomaswrobel.dev",
+		"url": "https://tomaswrobel.dev"
+	},
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+	},
+	"dependencies": {
+		"@juvofy/lib": "github:Juvofy/base",
+		"@material-symbols/svg-400": "0.44.12",
+		"@tailwindcss/vite": "^4.3.3",
+		"daisyui": "^5.7.16",
+		"oxfmt": "^0.59.0",
+		"tailwindcss": "^4.3.3"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@tsconfig/svelte": "^5.0.8",
+		"@types/node": "^24.13.2",
+		"svelte": "^5.56.4",
+		"svelte-check": "^4.7.1",
+		"typescript": "~6.0.2",
+		"vite": "^8.1.1",
+		"vite-plugin-pwa": "^1.3.0"
+	}
+}

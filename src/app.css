@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Ensure Tailwind scans @juvofy/lib for the daisyUI classes its components use. */
+@source "../node_modules/@juvofy/lib";
+
+/* Opt into the curated set of themes offered by the theme switcher (daisyUI only ships
+   light+dark CSS by default). */
+@plugin "daisyui" {
+	themes:
+		light --default,
+		dark,
+		cupcake,
+		synthwave,
+		forest,
+		dracula,
+		night,
+		winter;
+}
+
+/* Import Juvofy core styles (daisyUI plugin + shared utilities). */
+@import "@juvofy/lib/app.tw.css";
