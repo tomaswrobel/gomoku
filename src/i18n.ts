@@ -44,6 +44,9 @@ const dictionary = {
 	viewingMove: { cs: "Prohlížíte tah {step} z {total}", en: "Viewing move {step} of {total}" },
 	about: { cs: "O autorovi", en: "About the author" },
 	version: { cs: "Verze {version}", en: "Version {version}" },
+	gameplay: { cs: "Hra", en: "Gameplay" },
+	confirmMoves: { cs: "Potvrzovat tahy", en: "Confirm moves" },
+	confirmMove: { cs: "Potvrdit tah", en: "Confirm move" },
 } satisfies Record<string, Record<Locale, string>>;
 
 type MessageKey = keyof typeof dictionary;

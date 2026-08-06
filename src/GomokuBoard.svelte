@@ -10,10 +10,12 @@
 		board,
 		onPlay = board.play.bind(board),
 		disabled = false,
+		selected,
 	}: {
 		board: Board;
 		onPlay(this: void, coordinate: Coordinate): void;
 		disabled?: boolean;
+		selected?: Coordinate;
 	} = $props();
 
 	const boardSize = Horizontal.length;
@@ -82,6 +84,9 @@
 	function getCellFillColor(coordinate: Coordinate, color: Color | undefined): ClassValue {
 		if (color) {
 			return pieceFillColors[color];
+		}
+		if (coordinate === selected) {
+			return pieceFillColors[nextColor];
 		}
 		if (!disabled && coordinate === hoverCoordinate) {
 			return pieceFillColors[nextColor];
@@ -194,6 +199,7 @@
 			{@const coordinate = coordinateAt(col, row)}
 			{@const color = board.board[coordinate]}
 			{@const index = moveIndex[coordinate]}
+			{@const isSelected = coordinate === selected}
 			<!-- svelte-ignore a11y_click_events_have_key_events -- 225 cells; not keyboard-navigable -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -- see above -->
 			<g
@@ -215,10 +221,15 @@
 					cx={marginX + col}
 					cy={marginTop + row}
 					r={style.pieceRadius}
-					opacity={!disabled && coordinate === hoverCoordinate ? style.hoverAlpha : 1}
-					class={[color && "stroke-base-content", getCellFillColor(coordinate, color)]}
+					opacity={!color && !isSelected && !disabled && coordinate === hoverCoordinate
+						? style.hoverAlpha
+						: 1}
+					class={[
+						color ? "stroke-base-content" : isSelected && "stroke-primary",
+						getCellFillColor(coordinate, color),
+					]}
 					stroke-opacity={color ? 0.3 : 1}
-					stroke-width={style.pieceStrokeWidth}
+					stroke-width={isSelected ? style.pieceStrokeWidth * 5 : style.pieceStrokeWidth}
 				/>
 				{#if index !== undefined && color !== undefined}
 					<text

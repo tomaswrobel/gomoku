@@ -9,6 +9,7 @@
 	import HistoryIcon from "@material-symbols/svg-400/rounded/history.svg?icon";
 	import ChevronLeftIcon from "@material-symbols/svg-400/rounded/chevron_left.svg?icon";
 	import ChevronRightIcon from "@material-symbols/svg-400/rounded/chevron_right.svg?icon";
+	import CheckIcon from "@material-symbols/svg-400/rounded/check.svg?icon";
 	import MailIcon from "@material-symbols/svg-400/rounded/mail.svg?icon";
 	import LinkIcon from "@material-symbols/svg-400/rounded/link.svg?icon";
 	import BoardView from "./GomokuBoard.svelte";
@@ -17,6 +18,7 @@
 	import { StorageState } from "./StorageState.svelte";
 	import { Board } from "./Board.svelte";
 	import { Color } from "./Color";
+	import type { Coordinate } from "./Coordinate";
 	import { Controller } from "./Controller";
 	import { Decision } from "./Decision";
 	import { detectLocale } from "./detectLocale";
@@ -34,14 +36,18 @@
 	interface Settings {
 		locale: Locale;
 		theme: Theme;
+		confirmMoves: boolean;
 	}
 
 	const settings = new StorageState<Settings>("local", "gomoku:settings", {
 		locale: detectLocale(),
 		theme: Theme.Forest,
+		confirmMoves: true,
 	});
 	const locale = $derived(settings.value.locale);
 	const theme = $derived(settings.value.theme);
+	// Defaults to on: older persisted settings from before this option existed have no field at all.
+	const confirmMoves = $derived(settings.value.confirmMoves !== false);
 
 	const persistedGame = new StorageState<PersistedGame | null>("local", "gomoku:game", null);
 
@@ -74,6 +80,31 @@
 		if (!game || viewIndex === null) return;
 		const next = viewIndex + 1;
 		viewIndex = next >= game.board.moves.length ? null : next;
+	}
+
+	let pendingMove = $state<Coordinate>();
+	const canConfirmMove = $derived(pendingMove !== undefined && viewIndex === null);
+
+	$effect(() => {
+		void game;
+		void game?.board.moves.length;
+		void viewIndex;
+		pendingMove = undefined;
+	});
+
+	function play(coordinate: Coordinate) {
+		if (!game) return;
+		if (!confirmMoves) {
+			game.humanPlay(coordinate);
+			return;
+		}
+		pendingMove = pendingMove === coordinate ? undefined : coordinate;
+	}
+
+	function confirmMove() {
+		if (!game || pendingMove === null) return;
+		game.humanPlay(pendingMove);
+		pendingMove = undefined;
 	}
 
 	// Resume whatever game was in progress when the page was last closed/reloaded.
@@ -213,6 +244,20 @@
 				</Card>
 
 				<Card decoration="border">
+					<h2 class="mb-2 font-medium">{t("gameplay", locale)}</h2>
+					<label class="flex cursor-pointer items-center justify-between gap-2">
+						<span>{t("confirmMoves", locale)}</span>
+						<input
+							type="checkbox"
+							class="toggle toggle-primary"
+							checked={confirmMoves}
+							onchange={(event) =>
+								(settings.value.confirmMoves = event.currentTarget.checked)}
+						/>
+					</label>
+				</Card>
+
+				<Card decoration="border">
 					<h2 class="mb-2 font-medium">{t("appearance", locale)}</h2>
 					<ThemeChooser bind:value={settings.value.theme} />
 				</Card>
@@ -347,6 +392,18 @@
 				>
 					<ChevronRightIcon class="h-5 w-5 fill-current" />
 				</Button>
+
+				{#if confirmMoves}
+					<Button
+						size="sm"
+						variant={canConfirmMove ? "success" : undefined}
+						disabled={!canConfirmMove}
+						aria-label={t("confirmMove", locale)}
+						onclick={confirmMove}
+					>
+						<CheckIcon class="h-5 w-5 fill-current" />
+					</Button>
+				{/if}
 			</div>
 
 			{#if viewIndex === null && game.decisionSeat && game.controllers[game.decisionSeat] === Controller.Human}
@@ -375,7 +432,8 @@
 				<BoardView
 					board={viewBoard}
 					disabled={viewIndex !== null || game.thinking}
-					onPlay={(coordinate) => game?.humanPlay(coordinate)}
+					selected={pendingMove ?? undefined}
+					onPlay={play}
 				/>
 			</div>
 		{/if}
