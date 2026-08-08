@@ -1,5 +1,5 @@
-import { Horizontal } from "../Horizontal";
-import type { Coordinate } from "../Coordinate";
+import { Horizontal } from "./Horizontal";
+import type { Coordinate } from "./Coordinate";
 
 /** Converts a single Rapfi protocol "x,y" pair back into our Coordinate. */
 export function fromProtocol(token: string): Coordinate {

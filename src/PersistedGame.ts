@@ -1,6 +1,6 @@
 import type { Color } from "./Color";
 import type { Controller } from "./Controller";
-import type { Coordinate } from "./Coordinate";
+import type { Coordinate } from "./coordinate/Coordinate";
 import type { Phase } from "./Phase";
 import type { Seat } from "./Seat";
 

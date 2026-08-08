@@ -1,74 +1,20 @@
 import { Board } from "./Board.svelte";
-import { Color } from "./Color";
+import { Color, oppositeColor } from "./Color";
 import { Controller } from "./Controller";
-import type { Coordinate } from "./Coordinate";
+import type { Coordinate } from "./coordinate/Coordinate";
 import { Decision } from "./Decision";
-import { fromProtocol } from "./engine/fromProtocol";
-import { fromProtocolList } from "./engine/fromProtocolList";
+import { fromProtocol } from "./coordinate/fromProtocol";
+import { fromProtocolList } from "./coordinate/fromProtocolList";
 import { RapfiEngine } from "./engine/RapfiEngine";
-import { toProtocol } from "./engine/toProtocol";
-import { Horizontal } from "./Horizontal";
+import { toProtocol } from "./coordinate/toProtocol";
 import { Phase } from "./Phase";
 import type { PersistedGame } from "./PersistedGame";
-import { Seat } from "./Seat";
+import { oppositeSeat, Seat } from "./Seat";
+import { boardSize } from "./boardSize";
+import { checkFiveInRow } from "./checkFiveInRow";
+import { assert } from "@juvofy/lib/utils/assert";
 
-const BOARD_SIZE = Horizontal.length;
 const TURN_TIME_MS = 5000;
-
-function otherSeat(seat: Seat): Seat {
-	return seat === Seat.Black ? Seat.White : Seat.Black;
-}
-
-function otherColor(color: Color): Color {
-	return color === Color.Black ? Color.White : Color.Black;
-}
-
-function colorOf(moveIndex: number): Color {
-	return moveIndex % 2 ? Color.White : Color.Black;
-}
-
-/// Tags (true = placed by the decider) for the neutral Swap2 opening stones, seen from `decider`'s
-/// point of view. The first 3 stones are always placed by the opener (black seat); any further 2
-/// stones (reachable only when a human responder chooses to "place 2 more") are placed by the
-/// responder (white seat). Ownership of these stones is only settled once a decision is made.
-function decisionTags(decider: Seat, moveCount: number): boolean[] {
-	return Array.from(
-		{ length: moveCount },
-		decider === Seat.White ? () => false : (_, i) => i < 3,
-	);
-}
-
-const DIRECTIONS: [number, number][] = [
-	[1, 0],
-	[0, 1],
-	[1, 1],
-	[1, -1],
-];
-
-function checkFiveInRow(board: Partial<Record<Coordinate, Color>>, last: Coordinate): boolean {
-	const color = board[last];
-	if (!color) return false;
-
-	const x0 = Horizontal.indexOf(last[0] as (typeof Horizontal)[number]);
-	const y0 = Number(last.slice(1)) - 1;
-
-	for (const [dx, dy] of DIRECTIONS) {
-		let count = 1;
-		for (const sign of [-1, 1]) {
-			let x = x0 + dx * sign;
-			let y = y0 + dy * sign;
-			while (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
-				const coordinate = `${Horizontal[x]}${y + 1}` as Coordinate;
-				if (board[coordinate] !== color) break;
-				count++;
-				x += dx * sign;
-				y += dy * sign;
-			}
-		}
-		if (count >= 5) return true;
-	}
-	return false;
-}
 
 /// Orchestrates a full game locked to the Gomoku Swap2 opening rule: the "black" seat always
 /// proposes the opening (3 stones), the "white" seat decides whether to swap, play on, or place
@@ -78,8 +24,8 @@ export class SwapTwoGame {
 	readonly board: Board;
 
 	controllers = $state<Record<Seat, Controller>>({
-		[Seat.Black]: Controller.Human,
-		[Seat.White]: Controller.Human,
+		[Seat.Player1]: Controller.Human,
+		[Seat.Player2]: Controller.Human,
 	});
 	swapped = $state(false);
 	phase = $state<Phase>(Phase.Opening);
@@ -115,8 +61,8 @@ export class SwapTwoGame {
 	}
 
 	seatFor(color: Color): Seat {
-		const base: Seat = color === Color.Black ? Seat.Black : Seat.White;
-		return this.swapped ? otherSeat(base) : base;
+		const base: Seat = color === Color.Black ? Seat.Player1 : Seat.Player2;
+		return this.swapped ? oppositeSeat(base) : base;
 	}
 
 	controllerFor(color: Color): Controller {
@@ -124,7 +70,11 @@ export class SwapTwoGame {
 	}
 
 	get nextColor(): Color {
-		return colorOf(this.board.moves.length);
+		return this.colorOf(this.board.moves.length);
+	}
+
+	private colorOf(moveIndex: number): Color {
+		return moveIndex % 2 ? Color.White : Color.Black;
 	}
 
 	get nextController(): Controller {
@@ -132,8 +82,8 @@ export class SwapTwoGame {
 	}
 
 	get decisionSeat(): Seat | null {
-		if (this.phase === Phase.Decide1) return Seat.White;
-		if (this.phase === Phase.Decide2) return Seat.Black;
+		if (this.phase === Phase.Decide1) return Seat.Player2;
+		if (this.phase === Phase.Decide2) return Seat.Player1;
 		return null;
 	}
 
@@ -155,7 +105,7 @@ export class SwapTwoGame {
 	}
 
 	private initEngines(): void {
-		for (const seat of [Seat.Black, Seat.White]) {
+		for (const seat of [Seat.Player1, Seat.Player2]) {
 			if (this.controllers[seat] === Controller.Computer) {
 				this.enginePromises.set(seat, this.createEngine());
 			}
@@ -164,7 +114,7 @@ export class SwapTwoGame {
 
 	private async createEngine(): Promise<RapfiEngine> {
 		const engine = new RapfiEngine();
-		await engine.init(BOARD_SIZE, TURN_TIME_MS);
+		await engine.init(boardSize, TURN_TIME_MS);
 		return engine;
 	}
 
@@ -177,10 +127,11 @@ export class SwapTwoGame {
 
 	/** Called from the board UI when a human clicks an empty cell. */
 	humanPlay(coordinate: Coordinate): void {
-		if (this.thinking || this.board.board[coordinate]) return;
+		if (this.thinking || this.board.board[coordinate]) {
+			return;
+		}
 
-		if (this.phase === Phase.Opening) {
-			if (this.controllers[Seat.Black] !== Controller.Human) return;
+		if (this.phase === Phase.Opening && this.controllers[Seat.Player1] === Controller.Human) {
 			this.board.play(coordinate);
 			if (this.board.moves.length >= 3) {
 				this.phase = Phase.Decide1;
@@ -189,8 +140,7 @@ export class SwapTwoGame {
 			return;
 		}
 
-		if (this.phase === Phase.Balance) {
-			if (this.controllers[Seat.White] !== Controller.Human) return;
+		if (this.phase === Phase.Balance && this.controllers[Seat.Player2] === Controller.Human) {
 			this.board.play(coordinate);
 			if (this.board.moves.length >= 5) {
 				this.phase = Phase.Decide2;
@@ -199,8 +149,7 @@ export class SwapTwoGame {
 			return;
 		}
 
-		if (this.phase === Phase.Playing) {
-			if (this.nextController !== Controller.Human) return;
+		if (this.phase === Phase.Playing && this.nextController === Controller.Human) {
 			this.board.play(coordinate);
 			this.finishTurn();
 		}
@@ -209,28 +158,32 @@ export class SwapTwoGame {
 	/** Called from the UI when the human decider chooses to keep or swap colors. */
 	decide(choice: Decision): void {
 		const decider = this.decisionSeat;
-		if (!decider || this.controllers[decider] !== Controller.Human) return;
-
+		if (!decider || this.controllers[decider] !== Controller.Human) {
+			return;
+		}
 		const nextColor = this.nextColor;
-		this.assignSeatColor(decider, choice === Decision.Swap ? otherColor(nextColor) : nextColor);
+		this.assignSeatColor(
+			decider,
+			choice === Decision.Swap ? oppositeColor(nextColor) : nextColor,
+		);
 		this.phase = Phase.Playing;
 		void this.advance();
 	}
 
 	/** Only available to the human responder at decide1: place 2 more neutral stones. */
 	placeTwoMore(): void {
-		if (this.phase !== Phase.Decide1 || this.controllers[Seat.White] !== Controller.Human)
+		if (this.phase !== Phase.Decide1 || this.controllers[Seat.Player2] !== Controller.Human)
 			return;
 		this.phase = Phase.Balance;
 	}
 
 	private assignSeatColor(seat: Seat, color: Color) {
-		this.swapped = seat === Seat.Black ? color === Color.White : color === Color.Black;
+		this.swapped = seat === Seat.Player1 ? color === Color.White : color === Color.Black;
 	}
 
 	private engineFor(seat: Seat): Promise<RapfiEngine> {
 		const enginePromise = this.enginePromises.get(seat);
-		if (!enginePromise) throw new Error(`No engine registered for seat "${seat}"`);
+		assert(enginePromise, `No engine registered for seat "${seat}"`);
 		return enginePromise;
 	}
 
@@ -239,29 +192,25 @@ export class SwapTwoGame {
 		if (last && checkFiveInRow(this.board.board, last)) {
 			this.winner = this.board.board[last]!;
 			this.phase = Phase.Finished;
-			return;
-		}
-		if (this.board.moves.length >= BOARD_SIZE * BOARD_SIZE) {
+		} else if (this.board.moves.length >= boardSize ** 2) {
 			this.phase = Phase.Finished;
-			return;
+		} else {
+			void this.advance();
 		}
-		void this.advance();
 	}
 
 	/** Triggers whatever computer action the current phase/turn calls for; no-op for human turns. */
 	private async advance(): Promise<void> {
 		if (this.phase === Phase.Opening) {
-			if (this.controllers[Seat.Black] === Controller.Computer) await this.runOpening();
-			return;
-		}
-
-		if (this.phase === Phase.Decide1 || this.phase === Phase.Decide2) {
-			const decider: Seat = this.phase === Phase.Decide1 ? Seat.White : Seat.Black;
-			if (this.controllers[decider] === Controller.Computer) await this.runDecision(decider);
-			return;
-		}
-
-		if (this.phase === Phase.Playing && this.nextController === Controller.Computer) {
+			if (this.controllers[Seat.Player1] === Controller.Computer) {
+				await this.runOpening();
+			}
+		} else if (this.phase === Phase.Decide1 || this.phase === Phase.Decide2) {
+			const decider: Seat = this.phase === Phase.Decide1 ? Seat.Player2 : Seat.Player1;
+			if (this.controllers[decider] === Controller.Computer) {
+				await this.runDecision(decider);
+			}
+		} else if (this.phase === Phase.Playing && this.nextController === Controller.Computer) {
 			await this.runMove(this.seatFor(this.nextColor));
 		}
 	}
@@ -269,9 +218,9 @@ export class SwapTwoGame {
 	private async runOpening() {
 		this.thinking = true;
 		try {
-			const engine = await this.engineFor(Seat.Black);
+			const engine = await this.engineFor(Seat.Player1);
 			const reply = await engine.proposeOpening();
-			for (const coordinate of fromProtocolList(reply)) this.board.play(coordinate);
+			fromProtocolList(reply).forEach(this.board.play, this.board);
 		} finally {
 			this.thinking = false;
 		}
@@ -285,14 +234,15 @@ export class SwapTwoGame {
 	private async runDecision(decider: Seat) {
 		this.thinking = true;
 		try {
-			const tags = decisionTags(decider, this.board.moves.length);
-			const position = this.board.moves.map((c, i) => `${toProtocol(c)},${tags[i] ? 1 : 2}`);
+			const position = this.board.moves.map(
+				(c, i) => `${toProtocol(c)},${decider === Seat.Player1 && i < 3 ? 1 : 2}`,
+			);
 			const engine = await this.engineFor(decider);
 			const reply = await engine.decideSwap(position);
 
 			const nextColor = this.nextColor;
 			if (reply === "SWAP") {
-				this.assignSeatColor(decider, otherColor(nextColor));
+				this.assignSeatColor(decider, oppositeColor(nextColor));
 			} else {
 				this.assignSeatColor(decider, nextColor);
 				this.board.play(fromProtocol(reply));
@@ -309,7 +259,7 @@ export class SwapTwoGame {
 		this.thinking = true;
 		try {
 			const position = this.board.moves.map(
-				(c, i) => `${toProtocol(c)},${this.seatFor(colorOf(i)) === seat ? 1 : 2}`,
+				(c, i) => `${toProtocol(c)},${this.seatFor(this.colorOf(i)) === seat ? 1 : 2}`,
 			);
 			const engine = await this.engineFor(seat);
 			const reply = await engine.nextMove(position);

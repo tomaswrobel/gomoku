@@ -18,7 +18,7 @@
 	import { StorageState } from "./StorageState.svelte";
 	import { Board } from "./Board.svelte";
 	import { Color } from "./Color";
-	import type { Coordinate } from "./Coordinate";
+	import type { Coordinate } from "./coordinate/Coordinate";
 	import { Controller } from "./Controller";
 	import { Decision } from "./Decision";
 	import { detectLocale } from "./detectLocale";
@@ -49,13 +49,17 @@
 	// Defaults to on: older persisted settings from before this option existed have no field at all.
 	const confirmMoves = $derived(settings.value.confirmMoves !== false);
 
-	const persistedGame = new StorageState<PersistedGame | null>("local", "gomoku:game", null);
+	const persistedGame = new StorageState<PersistedGame | null>(
+		"local",
+		"gomoku:game:settings",
+		null,
+	);
 
 	let settingsOpen = $state(false);
 	let historyOpen = $state(false);
 	let setupControllers = $state<Record<Seat, Controller>>({
-		[Seat.Black]: Controller.Human,
-		[Seat.White]: Controller.Computer,
+		[Seat.Player2]: Controller.Human,
+		[Seat.Player1]: Controller.Computer,
 	});
 	let game = $state<SwapTwoGame | null>(null);
 
@@ -102,7 +106,9 @@
 	}
 
 	function confirmMove() {
-		if (!game || pendingMove === null) return;
+		if (!game || pendingMove === undefined) {
+			return;
+		}
 		game.humanPlay(pendingMove);
 		pendingMove = undefined;
 	}
@@ -147,18 +153,18 @@
 	}
 
 	function seatLabel(seat: Seat) {
-		return t(seat === Seat.Black ? "player1" : "player2", locale);
+		return t(seat, locale);
 	}
 
 	function controllerLabel(controller: Controller) {
-		return t(controller === Controller.Human ? "human" : "computer", locale);
+		return t(controller, locale);
 	}
 
 	function isSeatActive(seat: Seat): boolean {
 		if (!game || game.phase === Phase.Finished) return false;
-		if (game.phase === Phase.Opening) return seat === Seat.Black;
+		if (game.phase === Phase.Opening) return seat === Seat.Player2;
 		if (game.decisionSeat) return seat === game.decisionSeat;
-		if (game.phase === Phase.Balance) return seat === Seat.White;
+		if (game.phase === Phase.Balance) return seat === Seat.Player1;
 		return seat === game.seatFor(game.nextColor);
 	}
 </script>
@@ -169,7 +175,7 @@
 	>
 		<div class="flex shrink-0 items-center justify-between gap-2">
 			<div class="flex items-center gap-2">
-				<Logo class="h-8 w-8 sm:h-10 sm:w-10" />
+				<Logo class="size-8 sm:h-10 sm:w-10" />
 				<h1 class="text-xl font-bold sm:text-2xl">{t("title", locale)}</h1>
 			</div>
 			<div class="flex items-center gap-2">
@@ -182,7 +188,7 @@
 							settingsOpen = false;
 						}}
 					>
-						<HistoryIcon class="h-5 w-5 fill-current" />
+						<HistoryIcon class="size-5 fill-current" />
 					</Button>
 				{/if}
 				<Button
@@ -193,7 +199,7 @@
 						historyOpen = false;
 					}}
 				>
-					<SettingsIcon class="h-5 w-5 fill-current" />
+					<SettingsIcon class="size-5 fill-current" />
 				</Button>
 			</div>
 		</div>
@@ -221,7 +227,7 @@
 				</Card>
 
 				<Button onclick={() => (historyOpen = false)}>
-					<BackIcon class="h-5 w-5 fill-current" />
+					<BackIcon class="size-5 fill-current" />
 					{t("back", locale)}
 				</Button>
 			</div>
@@ -270,7 +276,7 @@
 							class="link link-hover flex items-center gap-1.5"
 							href="mailto:{author.email}"
 						>
-							<MailIcon class="h-4 w-4 fill-current" />
+							<MailIcon class="size-4 fill-current" />
 							{author.email}
 						</a>
 						<a
@@ -279,7 +285,7 @@
 							target="_blank"
 							rel="noreferrer"
 						>
-							<LinkIcon class="h-4 w-4 fill-current" />
+							<LinkIcon class="size-4 fill-current" />
 							{author.url}
 						</a>
 						<span class="mt-1 opacity-60">
@@ -289,7 +295,7 @@
 				</Card>
 
 				<Button onclick={() => (settingsOpen = false)}>
-					<BackIcon class="h-5 w-5 fill-current" />
+					<BackIcon class="size-5 fill-current" />
 					{t("back", locale)}
 				</Button>
 			</div>
@@ -322,17 +328,17 @@
 		{:else}
 			<div class="flex shrink-0 flex-col items-center justify-between gap-2 sm:flex-row">
 				<Badge
-					variant={isSeatActive(Seat.Black) ? "primary" : undefined}
+					variant={isSeatActive(Seat.Player2) ? "primary" : undefined}
 					decoration="outline"
 				>
-					{seatLabel(Seat.Black)} · {controllerLabel(game.controllers[Seat.Black])}
+					{seatLabel(Seat.Player2)} · {controllerLabel(game.controllers[Seat.Player2])}
 				</Badge>
 				<Button size="sm" onclick={backToSetup}>{t("newGame", locale)}</Button>
 				<Badge
-					variant={isSeatActive(Seat.White) ? "primary" : undefined}
+					variant={isSeatActive(Seat.Player1) ? "primary" : undefined}
 					decoration="outline"
 				>
-					{seatLabel(Seat.White)} · {controllerLabel(game.controllers[Seat.White])}
+					{seatLabel(Seat.Player1)} · {controllerLabel(game.controllers[Seat.Player1])}
 				</Badge>
 			</div>
 
@@ -343,7 +349,7 @@
 					aria-label={t("viewPrevious", locale)}
 					onclick={viewBack}
 				>
-					<ChevronLeftIcon class="h-5 w-5 fill-current" />
+					<ChevronLeftIcon class="size-5 fill-current" />
 				</Button>
 
 				<Card decoration="border" size="sm" class="min-w-0 flex-1">
@@ -370,11 +376,11 @@
 						{:else if game.thinking}
 							{t("thinking", locale)}
 						{:else if game.phase === Phase.Opening}
-							{t("opening", locale, { seat: seatLabel(Seat.Black) })}
+							{t("opening", locale, { seat: seatLabel(Seat.Player2) })}
 						{:else if game.decisionSeat}
 							{t("deciding", locale, { seat: seatLabel(game.decisionSeat) })}
 						{:else if game.phase === Phase.Balance}
-							{t("balance", locale, { seat: seatLabel(Seat.White) })}
+							{t("balance", locale, { seat: seatLabel(Seat.Player1) })}
 						{:else}
 							{t("turn", locale, {
 								color: colorLabel(game.nextColor),
@@ -390,7 +396,7 @@
 					aria-label={t("viewNext", locale)}
 					onclick={viewForward}
 				>
-					<ChevronRightIcon class="h-5 w-5 fill-current" />
+					<ChevronRightIcon class="size-5 fill-current" />
 				</Button>
 
 				{#if confirmMoves}
@@ -401,7 +407,7 @@
 						aria-label={t("confirmMove", locale)}
 						onclick={confirmMove}
 					>
-						<CheckIcon class="h-5 w-5 fill-current" />
+						<CheckIcon class="size-5 fill-current" />
 					</Button>
 				{/if}
 			</div>
@@ -426,9 +432,7 @@
 				</div>
 			{/if}
 
-			<div
-				class="flex min-h-0 flex-1 overflow-auto [align-items:safe_center] [justify-content:safe_center]"
-			>
+			<div class="flex min-h-0 flex-1 overflow-auto items-center-safe justify-center-safe">
 				<BoardView
 					board={viewBoard}
 					disabled={viewIndex !== null || game.thinking}

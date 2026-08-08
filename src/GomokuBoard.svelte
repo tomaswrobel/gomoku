@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { Board } from "./Board.svelte.ts";
 	import { Color } from "./Color";
-	import { Horizontal } from "./Horizontal";
-	import type { Coordinate } from "./Coordinate";
 	import { tw } from "@juvofy/lib/utils/tw";
 	import type { ClassValue } from "svelte/elements";
+	import type { Coordinate } from "./coordinate/Coordinate.js";
+	import { boardSize } from "./boardSize.js";
+	import { Horizontal } from "./coordinate/Horizontal.js";
 
 	const {
 		board,
@@ -18,7 +19,6 @@
 		selected?: Coordinate;
 	} = $props();
 
-	const boardSize = Horizontal.length;
 	const lastIndex = boardSize - 1;
 
 	// Layout constants, in SVG user units (1 unit = 1 cell), so the whole board scales via viewBox.

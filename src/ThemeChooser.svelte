@@ -21,10 +21,10 @@
 		>
 			<span class="relative mx-auto mb-2 block h-5 w-6">
 				<span
-					class="bg-primary absolute top-0 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full"
+					class="bg-primary absolute top-0 left-1/2 size-2 -translate-x-1/2 rounded-full"
 				></span>
-				<span class="bg-secondary absolute bottom-0 left-0 h-2 w-2 rounded-full"></span>
-				<span class="bg-accent absolute right-0 bottom-0 h-2 w-2 rounded-full"></span>
+				<span class="bg-secondary absolute bottom-0 left-0 size-2 rounded-full"></span>
+				<span class="bg-accent absolute right-0 bottom-0 size-2 rounded-full"></span>
 			</span>
 			<span class="block text-center text-xs font-medium capitalize">{candidate}</span>
 		</button>
