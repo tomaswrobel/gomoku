@@ -12,9 +12,9 @@ import type { PersistedGame } from "./PersistedGame";
 import { oppositeSeat, Seat } from "./Seat";
 import { boardSize } from "./boardSize";
 import { checkFiveInRow } from "./checkFiveInRow";
+import { difficultyTurnTime } from "./difficultyTurnTime";
+import { Settings } from "./settings";
 import { assert } from "@juvofy/lib/utils/assert";
-
-const TURN_TIME_MS = 5000;
 
 /// Orchestrates a full game locked to the Gomoku Swap2 opening rule: the "black" seat always
 /// proposes the opening (3 stones), the "white" seat decides whether to swap, play on, or place
@@ -114,7 +114,7 @@ export class SwapTwoGame {
 
 	private async createEngine(): Promise<RapfiEngine> {
 		const engine = new RapfiEngine();
-		await engine.init(boardSize, TURN_TIME_MS);
+		await engine.init(boardSize, difficultyTurnTime(Settings.value.difficulty));
 		return engine;
 	}
 
@@ -189,7 +189,7 @@ export class SwapTwoGame {
 
 	private finishTurn() {
 		const last = this.board.moves[this.board.moves.length - 1];
-		if (last && checkFiveInRow(this.board.board, last)) {
+		if (last && checkFiveInRow(this.board.board, last, Settings.value.overlineWins)) {
 			this.winner = this.board.board[last]!;
 			this.phase = Phase.Finished;
 		} else if (this.board.moves.length >= boardSize ** 2) {

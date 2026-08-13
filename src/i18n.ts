@@ -47,6 +47,14 @@ const dictionary = {
 	gameplay: { cs: "Hra", en: "Gameplay" },
 	confirmMoves: { cs: "Potvrzovat tahy", en: "Confirm moves" },
 	confirmMove: { cs: "Potvrdit tah", en: "Confirm move" },
+	difficulty: { cs: "Obtížnost Rapfiho", en: "Rapfi's difficulty" },
+	easy: { cs: "Snadná", en: "Easy" },
+	medium: { cs: "Střední", en: "Medium" },
+	hard: { cs: "Těžká", en: "Hard" },
+	overlineWins: {
+		cs: "Přesah (6 a více v řadě) je výhra",
+		en: "Overline (6-or-more in a row) counts as a win",
+	},
 } satisfies Record<string, Record<Locale, string>>;
 
 type MessageKey = keyof typeof dictionary;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Theme } from "./Theme";
+	import { Theme } from "../Theme";
 
 	let { value = $bindable() }: { value: Theme } = $props();
 </script>

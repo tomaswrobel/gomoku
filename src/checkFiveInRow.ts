@@ -13,6 +13,7 @@ const DIRECTIONS: [number, number][] = [
 export function checkFiveInRow(
 	board: Partial<Record<Coordinate, Color>>,
 	last: Coordinate,
+	overlineWins: boolean,
 ): boolean {
 	const color = board[last];
 	if (!color) {
@@ -35,7 +36,7 @@ export function checkFiveInRow(
 				y += dy * sign;
 			}
 		}
-		if (count === 5) {
+		if (overlineWins ? count >= 5 : count === 5) {
 			return true;
 		}
 	}
