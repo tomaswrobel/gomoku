@@ -10,9 +10,13 @@ const dictionary = {
 	human: { cs: "Člověk", en: "Human" },
 	computer: { cs: "Počítač (Rapfi)", en: "Computer (Rapfi)" },
 	draw: { cs: "Remíza — deska je plná.", en: "Draw — the board is full." },
-	winner: {
-		cs: "Vyhrál hráč hrající {color} ({seat})!",
-		en: "The player playing {color} ({seat}) won!",
+	winnerPrefix: {
+		cs: "Vyhrál hráč hrající",
+		en: "The player playing",
+	},
+	winnerSuffix: {
+		cs: "({seat}) vyhrál!",
+		en: "({seat}) won!",
 	},
 	thinking: { cs: "Počítač přemýšlí…", en: "Computer is thinking…" },
 	opening: {
@@ -27,7 +31,7 @@ const dictionary = {
 		cs: "{seat} pokládá 2 vyrovnávací kameny.",
 		en: "{seat} places 2 balancing stones.",
 	},
-	turn: { cs: "Na tahu: {color} ({seat})", en: "To move: {color} ({seat})" },
+	turnPrefix: { cs: "Na tahu:", en: "To move:" },
 	keep: { cs: "Hrát {color}", en: "Play {color}" },
 	swap: { cs: "Vyměnit a hrát {color}", en: "Swap and play {color}" },
 	placeTwoMore: { cs: "Umístit ještě 2 kameny", en: "Place 2 more stones" },
@@ -55,6 +59,9 @@ const dictionary = {
 		cs: "Přesah (6 a více v řadě) je výhra",
 		en: "Overline (6-or-more in a row) counts as a win",
 	},
+	boardStyle: { cs: "Styl desky", en: "Board style" },
+	gomoku: { cs: "Gomoku", en: "Gomoku" },
+	piskvorky: { cs: "Piškvorky", en: "Piškvorky" },
 } satisfies Record<string, Record<Locale, string>>;
 
 type MessageKey = keyof typeof dictionary;

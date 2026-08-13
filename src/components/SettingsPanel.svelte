@@ -5,6 +5,7 @@
 	import MailIcon from "@material-symbols/svg-400/rounded/mail.svg?icon";
 	import LinkIcon from "@material-symbols/svg-400/rounded/link.svg?icon";
 	import ThemeChooser from "./ThemeChooser.svelte";
+	import { BoardStyle } from "../BoardStyle";
 	import { Difficulty } from "../Difficulty";
 	import { i18nContext } from "../i18nContext";
 	import { Locale } from "../Locale";
@@ -56,12 +57,32 @@
 			</label>
 
 			<div class="flex flex-wrap items-center justify-between gap-2">
+				<span>{i18n.t("boardStyle")}</span>
+				<div class="join">
+					{#each Object.values(BoardStyle) as candidate (candidate)}
+						<Button
+							size="sm"
+							variant={candidate === Settings.value.boardStyle
+								? "primary"
+								: undefined}
+							class="join-item"
+							onclick={() => (Settings.value.boardStyle = candidate)}
+						>
+							{i18n.t(candidate)}
+						</Button>
+					{/each}
+				</div>
+			</div>
+
+			<div class="flex flex-wrap items-center justify-between gap-2">
 				<span>{i18n.t("difficulty")}</span>
 				<div class="join">
 					{#each Object.values(Difficulty) as candidate (candidate)}
 						<Button
 							size="sm"
-							variant={candidate === Settings.value.difficulty ? "primary" : undefined}
+							variant={candidate === Settings.value.difficulty
+								? "primary"
+								: undefined}
 							class="join-item"
 							onclick={() => (Settings.value.difficulty = candidate)}
 						>
@@ -95,7 +116,9 @@
 				<LinkIcon class="size-4 fill-current" />
 				{author.url}
 			</a>
-			<span class="mt-1 opacity-60">{i18n.t("version", { version: packageJson.version })}</span>
+			<span class="mt-1 opacity-60"
+				>{i18n.t("version", { version: packageJson.version })}</span
+			>
 		</div>
 	</Card>
 
