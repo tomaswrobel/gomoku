@@ -72,7 +72,7 @@
 </script>
 
 <App>
-	<div class="navbar bg-base-100 shadow-sm fixed top-0">
+	<div class="navbar bg-base-100 shadow-sm fixed top-0 z-10">
 		<div class="flex flex-1 items-center gap-2 pl-1">
 			<Logo class="size-8 sm:h-10 sm:w-10" />
 			<h1 class="text-xl font-bold sm:text-2xl">{t("title", locale)}</h1>
@@ -105,7 +105,7 @@
 	<div
 		class="mx-auto flex h-dvh w-full max-w-xl flex-col gap-3 overflow-hidden p-2 sm:max-w-2xl sm:gap-4 sm:p-4 lg:max-w-3xl"
 	>
-		<div class="navbar"></div>
+		<div class="navbar pointer-events-none" aria-hidden="true"></div>
 		{#if historyOpen}
 			<HistoryPanel {game} onBack={() => (historyOpen = false)} />
 		{:else if settingsOpen}
