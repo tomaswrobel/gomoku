@@ -121,6 +121,7 @@
 			<Button
 				size="sm"
 				variant="neutral"
+				class="btn-outline"
 				aria-label={i18n.t("keep", { color: colorLabel(game.nextColor) })}
 				onclick={() => game.decide(Decision.Keep)}
 			>
@@ -129,6 +130,7 @@
 			<Button
 				size="sm"
 				variant="neutral"
+				class="btn-outline"
 				aria-label={i18n.t("swap", { color: colorLabel(oppositeColor(game.nextColor)) })}
 				onclick={() => game.decide(Decision.Swap)}
 			>

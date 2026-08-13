@@ -14,14 +14,14 @@
 			<path
 				d="M5 5L19 19M19 5L5 19"
 				fill="none"
-				stroke="currentColor"
+				class="stroke-primary"
 				stroke-width="3"
 				stroke-linecap="round"
 			/>
 		</svg>
 	{:else}
 		<svg viewBox="0 0 24 24" class={className}>
-			<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="3" />
+			<circle cx="12" cy="12" r="7.5" fill="none" class="stroke-secondary" stroke-width="3" />
 		</svg>
 	{/if}
 {:else}
