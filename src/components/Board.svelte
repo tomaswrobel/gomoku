@@ -10,19 +10,19 @@
 	import GomokuBoard from "./GomokuBoard.svelte";
 	import PieceSymbol from "./PieceSymbol.svelte";
 	import PiskvorkyBoard from "./PiskvorkyBoard.svelte";
-	import { BoardStyle } from "../BoardStyle";
-	import { Board as GameBoard } from "../Board.svelte";
-	import { Color, oppositeColor } from "../Color";
-	import type { Coordinate } from "../coordinate/Coordinate";
-	import { Controller } from "../Controller";
-	import { Decision } from "../Decision";
-	import type { SwapTwoGame } from "../Game.svelte";
-	import { i18nContext } from "../i18nContext";
-	import { Phase } from "../Phase";
-	import { Seat } from "../Seat";
-	import { Settings } from "../settings";
+	import { BoardStyle } from "../settings/BoardStyle";
+	import { Board as GameBoard } from "../game/Board.svelte";
+	import { Color, oppositeColor } from "../game/Color";
+	import type { Coordinate } from "../game/coordinate/Coordinate";
+	import { Controller } from "../game/Controller";
+	import { Decision } from "../game/Decision";
+	import type { Game } from "../game/Game.svelte";
+	import { i18nContext } from "../i18n/i18nContext";
+	import { Phase } from "../game/Phase";
+	import { Seat } from "../game/Seat";
+	import { Settings } from "../settings/settings";
 
-	const { game, onBackToSetup }: { game: SwapTwoGame; onBackToSetup(): void } = $props();
+	const { game, onBackToSetup }: { game: Game; onBackToSetup(): void } = $props();
 
 	const i18n = i18nContext.get();
 
@@ -31,19 +31,25 @@
 	let viewIndex = $state<number | null>(null);
 
 	const viewBoard = $derived.by(() => {
-		if (viewIndex === null) return game.board;
+		if (viewIndex === null) {
+			return game.board;
+		}
 		return new GameBoard(game.board.moves.slice(0, viewIndex));
 	});
 	const canViewBack = $derived((viewIndex ?? game.board.moves.length) > 0);
 	const canViewForward = $derived(viewIndex !== null);
 
 	function viewBack() {
-		if (!canViewBack) return;
+		if (!canViewBack) {
+			return;
+		}
 		viewIndex = (viewIndex ?? game.board.moves.length) - 1;
 	}
 
 	function viewForward() {
-		if (viewIndex === null) return;
+		if (viewIndex === null) {
+			return;
+		}
 		const next = viewIndex + 1;
 		viewIndex = next >= game.board.moves.length ? null : next;
 	}
@@ -70,7 +76,9 @@
 	}
 
 	function confirmMove() {
-		if (pendingMove === undefined) return;
+		if (pendingMove === undefined) {
+			return;
+		}
 		game.humanPlay(pendingMove);
 		pendingMove = undefined;
 	}
@@ -86,10 +94,18 @@
 	);
 
 	function isSeatActive(seat: Seat): boolean {
-		if (game.phase === Phase.Finished) return false;
-		if (game.phase === Phase.Opening) return seat === Seat.Player1;
-		if (game.decisionSeat) return seat === game.decisionSeat;
-		if (game.phase === Phase.Balance) return seat === Seat.Player2;
+		if (game.phase === Phase.Finished) {
+			return false;
+		}
+		if (game.phase === Phase.Opening) {
+			return seat === Seat.Player1;
+		}
+		if (game.decisionSeat) {
+			return seat === game.decisionSeat;
+		}
+		if (game.phase === Phase.Balance) {
+			return seat === Seat.Player2;
+		}
 		return seat === game.seatFor(game.nextColor);
 	}
 </script>

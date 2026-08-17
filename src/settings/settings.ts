@@ -1,10 +1,11 @@
-import { detectLocale } from "./detectLocale";
+import { detectLocale } from "../i18n/detectLocale";
 import { BoardStyle } from "./BoardStyle";
 import { Difficulty } from "./Difficulty";
-import type { Locale } from "./Locale";
+import type { Locale } from "../i18n/Locale";
+import { OpeningRule } from "../game/OpeningRule";
 import { StorageState } from "./StorageState.svelte";
 import { Theme } from "./Theme";
-import { version } from "../package.json";
+import { version } from "../../package.json";
 
 const [major, minor, _patch] = version.split(".");
 
@@ -15,6 +16,7 @@ interface SettingsValue {
 	difficulty: Difficulty;
 	overlineWins: boolean;
 	boardStyle: BoardStyle;
+	openingRule: OpeningRule;
 }
 
 export const Settings = new StorageState<SettingsValue>(
@@ -27,5 +29,6 @@ export const Settings = new StorageState<SettingsValue>(
 		difficulty: Difficulty.Medium,
 		overlineWins: false,
 		boardStyle: BoardStyle.Gomoku,
+		openingRule: OpeningRule.Swap2,
 	},
 );

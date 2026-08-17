@@ -12,7 +12,7 @@ async function init() {
 	mod = await self.Rapfi({
 		onReceiveStdout: handleLine,
 		onReceiveStderr: () => {},
-		locateFile: (path) => "/rapfi/" + path,
+		locateFile: (path) => `/rapfi/${path}`,
 	});
 }
 

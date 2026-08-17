@@ -1,111 +1,120 @@
 import { Board } from "./Board.svelte";
 import { Color, oppositeColor } from "./Color";
+import { colorAtMove } from "./colorAtMove";
 import { Controller } from "./Controller";
 import type { Coordinate } from "./coordinate/Coordinate";
 import { Decision } from "./Decision";
 import { fromProtocol } from "./coordinate/fromProtocol";
 import { fromProtocolList } from "./coordinate/fromProtocolList";
-import { RapfiEngine } from "./engine/RapfiEngine";
+import { RapfiEngine } from "../engine/RapfiEngine";
 import { toProtocol } from "./coordinate/toProtocol";
 import { Phase } from "./Phase";
 import type { PersistedGame } from "./PersistedGame";
-import { oppositeSeat, Seat } from "./Seat";
+import { OppositeSeat, Seat } from "./Seat";
 import { boardSize } from "./boardSize";
 import { checkFiveInRow } from "./checkFiveInRow";
 import { difficultyTurnTime } from "./difficultyTurnTime";
-import { Settings } from "./settings";
+import { OpeningRule } from "./OpeningRule";
+import { Settings } from "../settings/settings";
 import { assert } from "@juvofy/lib/utils/assert";
 
-/// Orchestrates a full game locked to the Gomoku Swap2 opening rule: the "black" seat always
-/// proposes the opening (3 stones), the "white" seat decides whether to swap, play on, or place
-/// 2 more balancing stones (in which case "black" makes the final swap/play decision). Each seat is
-/// independently controlled by a human (mouse clicks) or a Rapfi engine instance (Gomocup protocol).
-export class SwapTwoGame {
-	readonly board: Board;
+/// Orchestrates a full game under either the Gomoku Swap2 or standard opening rule: under Swap2,
+/// the "black" seat always proposes the opening (3 stones), the "white" seat decides whether to
+/// swap, play on, or place 2 more balancing stones (in which case "black" makes the final
+/// swap/play decision); under the standard rule, play starts directly from an empty board. Each
+/// seat is independently controlled by a human (mouse clicks) or a Rapfi engine instance (Gomocup
+/// protocol).
+export class Game {
+	public readonly board: Board;
+	public readonly openingRule: OpeningRule;
 
-	controllers = $state<Record<Seat, Controller>>({
-		[Seat.Player1]: Controller.Human,
-		[Seat.Player2]: Controller.Human,
-	});
-	swapped = $state(false);
-	phase = $state<Phase>(Phase.Opening);
-	thinking = $state(false);
-	winner = $state<Color | null>(null);
+	public readonly controllers: Record<Seat, Controller>;
+	public swapped = $state(false);
+	public phase = $state<Phase>(Phase.Opening);
+	public thinking = $state(false);
+	public winner = $state<Color | null>(null);
 
 	private readonly enginePromises = new Map<Seat, Promise<RapfiEngine>>();
 	private started = false;
 
-	constructor(moves: Coordinate[] = []) {
+	public constructor(
+		openingRule: OpeningRule,
+		controllers: Record<Seat, Controller>,
+		moves: Coordinate[] = [],
+	) {
+		this.controllers = $state(controllers);
 		this.board = new Board(moves);
+		this.openingRule = openingRule;
 	}
 
 	/// Reconstructs a game from a previously-persisted snapshot; call `resume()` (not `start()`)
 	/// afterwards to pick play back up, since the opening has already happened.
-	static restore(data: PersistedGame): SwapTwoGame {
-		const game = new SwapTwoGame(data.moves);
-		game.controllers = data.controllers;
+	public static restore(data: PersistedGame): Game {
+		const game = new Game(data.openingRule, data.controllers, data.moves);
 		game.swapped = data.swapped;
 		game.phase = data.phase;
 		game.winner = data.winner;
 		return game;
 	}
 
-	toJSON(): PersistedGame {
+	public toJSON(): PersistedGame {
 		return {
 			controllers: this.controllers,
 			swapped: this.swapped,
 			phase: this.phase,
 			winner: this.winner,
 			moves: this.board.moves,
+			openingRule: this.openingRule,
 		};
 	}
 
-	seatFor(color: Color): Seat {
+	public seatFor(color: Color): Seat {
 		const base: Seat = color === Color.Black ? Seat.Player1 : Seat.Player2;
-		return this.swapped ? oppositeSeat(base) : base;
+		return this.swapped ? OppositeSeat[base] : base;
 	}
 
-	controllerFor(color: Color): Controller {
+	public controllerFor(color: Color): Controller {
 		return this.controllers[this.seatFor(color)];
 	}
 
-	get nextColor(): Color {
-		return this.colorOf(this.board.moves.length);
-	}
+	public readonly nextColor: Color = $derived.by(() => colorAtMove(this.board.moves.length));
+	public readonly nextController: Controller = $derived.by(() =>
+		this.controllerFor(this.nextColor),
+	);
 
-	private colorOf(moveIndex: number): Color {
-		return moveIndex % 2 ? Color.White : Color.Black;
-	}
-
-	get nextController(): Controller {
-		return this.controllerFor(this.nextColor);
-	}
-
-	get decisionSeat(): Seat | null {
-		if (this.phase === Phase.Decide1) return Seat.Player2;
-		if (this.phase === Phase.Decide2) return Seat.Player1;
+	public readonly decisionSeat: Seat | null = $derived.by(() => {
+		if (this.phase === Phase.Decide1) {
+			return Seat.Player2;
+		}
+		if (this.phase === Phase.Decide2) {
+			return Seat.Player1;
+		}
 		return null;
-	}
+	});
 
-	async start(): Promise<void> {
-		if (this.started) return;
+	public async start(): Promise<void> {
+		if (this.started) {
+			return;
+		}
 		this.started = true;
 		this.initEngines();
-		this.phase = Phase.Opening;
+		this.phase = this.openingRule === OpeningRule.Standard ? Phase.Playing : Phase.Opening;
 		await this.advance();
 	}
 
-	/// Picks a game back up from a `SwapTwoGame.restore()` snapshot: same engine setup as `start()`,
+	/// Picks a game back up from a `Game.restore()` snapshot: same engine setup as `start()`,
 	/// but keeps whatever phase/moves were restored instead of resetting to a fresh opening.
-	async resume(): Promise<void> {
-		if (this.started) return;
+	public async resume(): Promise<void> {
+		if (this.started) {
+			return;
+		}
 		this.started = true;
 		this.initEngines();
 		await this.advance();
 	}
 
 	private initEngines(): void {
-		for (const seat of [Seat.Player1, Seat.Player2]) {
+		for (const seat of Object.values(Seat)) {
 			if (this.controllers[seat] === Controller.Computer) {
 				this.enginePromises.set(seat, this.createEngine());
 			}
@@ -114,11 +123,11 @@ export class SwapTwoGame {
 
 	private async createEngine(): Promise<RapfiEngine> {
 		const engine = new RapfiEngine();
-		await engine.init(boardSize, difficultyTurnTime(Settings.value.difficulty));
+		await engine.init(boardSize, difficultyTurnTime[Settings.value.difficulty]);
 		return engine;
 	}
 
-	destroy(): void {
+	public destroy(): void {
 		for (const enginePromise of this.enginePromises.values()) {
 			void enginePromise.then((engine) => engine.terminate());
 		}
@@ -126,7 +135,7 @@ export class SwapTwoGame {
 	}
 
 	/** Called from the board UI when a human clicks an empty cell. */
-	humanPlay(coordinate: Coordinate): void {
+	public humanPlay(coordinate: Coordinate): void {
 		if (this.thinking || this.board.board[coordinate]) {
 			return;
 		}
@@ -156,7 +165,7 @@ export class SwapTwoGame {
 	}
 
 	/** Called from the UI when the human decider chooses to keep or swap colors. */
-	decide(choice: Decision): void {
+	public decide(choice: Decision): void {
 		const decider = this.decisionSeat;
 		if (!decider || this.controllers[decider] !== Controller.Human) {
 			return;
@@ -171,9 +180,10 @@ export class SwapTwoGame {
 	}
 
 	/** Only available to the human responder at decide1: place 2 more neutral stones. */
-	placeTwoMore(): void {
-		if (this.phase !== Phase.Decide1 || this.controllers[Seat.Player2] !== Controller.Human)
+	public placeTwoMore(): void {
+		if (this.phase !== Phase.Decide1 || this.controllers[Seat.Player2] !== Controller.Human) {
 			return;
+		}
 		this.phase = Phase.Balance;
 	}
 
@@ -220,7 +230,7 @@ export class SwapTwoGame {
 		try {
 			const engine = await this.engineFor(Seat.Player1);
 			const reply = await engine.proposeOpening();
-			fromProtocolList(reply).forEach(this.board.play, this.board);
+			fromProtocolList(reply).forEach((coordinate) => this.board.play(coordinate));
 		} finally {
 			this.thinking = false;
 		}
@@ -259,7 +269,7 @@ export class SwapTwoGame {
 		this.thinking = true;
 		try {
 			const position = this.board.moves.map(
-				(c, i) => `${toProtocol(c)},${this.seatFor(this.colorOf(i)) === seat ? 1 : 2}`,
+				(c, i) => `${toProtocol(c)},${this.seatFor(colorAtMove(i)) === seat ? 1 : 2}`,
 			);
 			const engine = await this.engineFor(seat);
 			const reply = await engine.nextMove(position);

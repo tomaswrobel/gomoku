@@ -4,7 +4,7 @@ import type { Coordinate } from "./coordinate/Coordinate";
 export class Board {
 	public readonly moves: Coordinate[];
 
-	constructor(moves: Coordinate[] = []) {
+	public constructor(moves: Coordinate[] = []) {
 		this.moves = $state(moves);
 	}
 

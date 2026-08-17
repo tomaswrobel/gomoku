@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { Board } from "../Board.svelte.ts";
-	import { Color } from "../Color";
+	import type { Board } from "../game/Board.svelte.ts";
+	import { Color } from "../game/Color";
 	import { tw } from "@juvofy/lib/utils/tw";
 	import type { ClassValue } from "svelte/elements";
-	import type { Coordinate } from "../coordinate/Coordinate.js";
-	import { boardSize } from "../boardSize.js";
-	import { Horizontal } from "../coordinate/Horizontal.js";
+	import type { Coordinate } from "../game/coordinate/Coordinate.js";
+	import { boardSize } from "../game/boardSize.js";
+	import { Horizontal } from "../game/coordinate/Horizontal.js";
 
 	const {
 		board,

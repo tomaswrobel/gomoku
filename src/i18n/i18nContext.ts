@@ -1,10 +1,10 @@
 import { createContext } from "svelte";
-import { t } from "./i18n";
+import { translate } from "./translate";
 import type { Locale } from "./Locale";
 
 interface I18n {
 	readonly locale: Locale;
-	t(key: Parameters<typeof t>[0], vars?: Parameters<typeof t>[2]): string;
+	t(key: Parameters<typeof translate>[0], vars?: Parameters<typeof translate>[2]): string;
 }
 
 const [getContextValue, setContextValue] = createContext<I18n>();

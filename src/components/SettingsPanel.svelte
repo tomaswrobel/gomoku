@@ -5,11 +5,12 @@
 	import MailIcon from "@material-symbols/svg-400/rounded/mail.svg?icon";
 	import LinkIcon from "@material-symbols/svg-400/rounded/link.svg?icon";
 	import ThemeChooser from "./ThemeChooser.svelte";
-	import { BoardStyle } from "../BoardStyle";
-	import { Difficulty } from "../Difficulty";
-	import { i18nContext } from "../i18nContext";
-	import { Locale } from "../Locale";
-	import { Settings } from "../settings";
+	import { BoardStyle } from "../settings/BoardStyle";
+	import { Difficulty } from "../settings/Difficulty";
+	import { i18nContext } from "../i18n/i18nContext";
+	import { Locale } from "../i18n/Locale";
+	import { OpeningRule } from "../game/OpeningRule";
+	import { Settings } from "../settings/settings";
 	import packageJson from "../../package.json";
 
 	const { onBack }: { onBack(): void } = $props();
@@ -55,6 +56,24 @@
 					bind:checked={Settings.value.overlineWins}
 				/>
 			</label>
+
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<span>{i18n.t("openingRule")}</span>
+				<div class="join">
+					{#each Object.values(OpeningRule) as candidate (candidate)}
+						<Button
+							size="sm"
+							variant={candidate === Settings.value.openingRule
+								? "primary"
+								: undefined}
+							class="join-item"
+							onclick={() => (Settings.value.openingRule = candidate)}
+						>
+							{i18n.t(candidate)}
+						</Button>
+					{/each}
+				</div>
+			</div>
 
 			<div class="flex flex-wrap items-center justify-between gap-2">
 				<span>{i18n.t("boardStyle")}</span>

@@ -2,10 +2,10 @@
 	import Button from "@juvofy/lib/components/actions/Button";
 	import Card from "@juvofy/lib/components/display/Card";
 	import BackIcon from "@material-symbols/svg-400/rounded/arrow_back.svg?icon";
-	import { i18nContext } from "../i18nContext";
-	import type { SwapTwoGame } from "../Game.svelte";
+	import { i18nContext } from "../i18n/i18nContext";
+	import type { Game } from "../game/Game.svelte";
 
-	const { game, onBack }: { game: SwapTwoGame | null; onBack(): void } = $props();
+	const { game, onBack }: { game: Game | null; onBack(): void } = $props();
 
 	const i18n = i18nContext.get();
 </script>

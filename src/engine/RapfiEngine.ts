@@ -10,7 +10,7 @@ export class RapfiEngine {
 		}
 	>();
 
-	constructor() {
+	public constructor() {
 		this.worker = new Worker(new URL("./rapfi-worker.js", import.meta.url));
 		this.worker.onmessage = (event) => {
 			const { id, result, error } = event.data as {
@@ -20,8 +20,11 @@ export class RapfiEngine {
 			};
 			const handlers = this.pending.get(id);
 			this.pending.delete(id);
-			if (error) handlers?.reject(new Error(error));
-			else if (result) handlers?.resolve(result);
+			if (error) {
+				handlers?.reject(new Error(error));
+			} else if (result) {
+				handlers?.resolve(result);
+			}
 		};
 	}
 
@@ -33,7 +36,7 @@ export class RapfiEngine {
 		});
 	}
 
-	async init(boardSize: number, turnTimeMs: number): Promise<void> {
+	public async init(boardSize: number, turnTimeMs: number): Promise<void> {
 		await this.send("__init__");
 		await this.send(`START ${boardSize}`);
 		await this.send("INFO RULE 6");
@@ -41,24 +44,24 @@ export class RapfiEngine {
 	}
 
 	/** Asks the engine (as opener, empty board) to propose the 3 Swap2 opening stones. */
-	async proposeOpening(): Promise<string> {
+	public async proposeOpening(): Promise<string> {
 		const { reply } = await this.send("SWAP2BOARD\nDONE");
 		return reply;
 	}
 
 	/** Asks the engine to decide "SWAP" or make its move, given the current opening position. */
-	async decideSwap(position: string[]): Promise<string> {
+	public async decideSwap(position: string[]): Promise<string> {
 		const { reply } = await this.send(`SWAP2BOARD\n${position.join("\n")}\nDONE`);
 		return reply;
 	}
 
 	/** Asks the engine for its next move given the full current position. */
-	async nextMove(position: string[]): Promise<string> {
+	public async nextMove(position: string[]): Promise<string> {
 		const { reply } = await this.send(`BOARD\n${position.join("\n")}\nDONE`);
 		return reply;
 	}
 
-	terminate(): void {
+	public terminate(): void {
 		this.worker.terminate();
 	}
 }

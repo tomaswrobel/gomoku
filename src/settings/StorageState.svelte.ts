@@ -3,7 +3,7 @@ export class StorageState<Value> {
 	private storedValue = $state<Value>();
 	public loaded = $state(false);
 
-	constructor(
+	public constructor(
 		storageKind: "local" | "session",
 		private readonly storageKey: string,
 		initialValue: Value,

@@ -30,7 +30,9 @@ export function checkFiveInRow(
 			let y = y0 + dy * sign;
 			while (x >= 0 && x < boardSize && y >= 0 && y < boardSize) {
 				const coordinate = `${Horizontal[x]}${y + 1}` as Coordinate;
-				if (board[coordinate] !== color) break;
+				if (board[coordinate] !== color) {
+					break;
+				}
 				count++;
 				x += dx * sign;
 				y += dy * sign;

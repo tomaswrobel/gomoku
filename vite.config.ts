@@ -14,12 +14,12 @@ export default defineConfig({
 			registerType: "autoUpdate",
 			includeAssets: ["favicon.svg"],
 			manifest: {
-				name: "Gomoku — Swap2",
-				short_name: "Gomoku",
+				name: "Gomoku Lite",
+				short_name: "Gomoku Lite",
 				description:
-					"Gomoku locked to the Swap2 opening, playable against the Rapfi engine.",
-				theme_color: "#dcb35c",
-				background_color: "#dcb35c",
+					"A lightweight Gomoku app playable against the Rapfi engine, with Swap2 or standard openings.",
+				theme_color: "#1fb854",
+				background_color: "#1b1717",
 				display: "standalone",
 				icons: [
 					{ src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },

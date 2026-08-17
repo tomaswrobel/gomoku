@@ -1,0 +1,11 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"extends": ["./node_modules/@juvofy/lib/.oxlintrc.json"],
+	"options": {
+		"typeAware": true
+	},
+	"ignorePatterns": ["public/rapfi/**"],
+	"rules": {
+		"typescript/explicit-member-accessibility": "error"
+	}
+}
