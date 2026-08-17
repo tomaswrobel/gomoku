@@ -15,7 +15,7 @@
 		"check": "oxfmt . --check && svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && oxlint"
 	},
 	"dependencies": {
-		"@juvofy/lib": "github:Juvofy/base",
+		"@juvofy/lib": "github:Juvofy/base#v1.2.3",
 		"@material-symbols/svg-400": "0.46.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"daisyui": "^5.7.17",
