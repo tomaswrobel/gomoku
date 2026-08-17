@@ -1,11 +1,21 @@
 <script lang="ts">
-	import type { Board } from "../game/Board.svelte.ts";
+	import type { Board } from "../game/Board.svelte";
 	import { Color } from "../game/Color";
+	import { colorAtMove } from "../game/colorAtMove";
 	import { tw } from "@juvofy/lib/utils/tw";
 	import type { ClassValue } from "svelte/elements";
 	import type { Coordinate } from "../game/coordinate/Coordinate.js";
 	import { boardSize } from "../game/boardSize.js";
 	import { Horizontal } from "../game/coordinate/Horizontal.js";
+	import {
+		BoardInteraction,
+		buildMoveIndex,
+		coordinateAt,
+		MARGIN_BOTTOM,
+		MARGIN_TOP,
+		MARGIN_X,
+		MIN_CELL_SIZE_PX,
+	} from "./boardShared.svelte";
 
 	const {
 		board,
@@ -20,17 +30,8 @@
 	} = $props();
 
 	const lastIndex = boardSize - 1;
-
-	// Layout constants, in SVG user units (1 unit = 1 cell), so the whole board scales via viewBox.
-	const marginX = 1.4;
-	const marginTop = 0.7;
-	const marginBottom = 1.2;
-	const viewBoxWidth = lastIndex + marginX * 2;
-	const viewBoxHeight = lastIndex + marginTop + marginBottom;
-
-	// Below this, cells get too small to comfortably tap/read (especially on mobile), so the board
-	// stops shrinking and its scroll container (see App.svelte) takes over instead of the cells.
-	const MIN_CELL_SIZE_PX = 32;
+	const viewBoxWidth = lastIndex + MARGIN_X * 2;
+	const viewBoxHeight = lastIndex + MARGIN_TOP + MARGIN_BOTTOM;
 	const minWidth = viewBoxWidth * MIN_CELL_SIZE_PX;
 	const minHeight = viewBoxHeight * MIN_CELL_SIZE_PX;
 
@@ -55,14 +56,14 @@
 		[Color.White]: tw("fill-neutral"),
 	};
 
-	let hoverCoordinate = $state<Coordinate>();
-
-	const nextColor = $derived(board.moves.length % 2 ? Color.White : Color.Black);
-	const moveIndex = $derived.by(() => {
-		const map: Partial<Record<Coordinate, number>> = {};
-		board.moves.forEach((coordinate, i) => (map[coordinate] = i));
-		return map;
+	const interaction = new BoardInteraction({
+		board: () => board,
+		disabled: () => disabled,
+		onPlay: (coordinate) => onPlay(coordinate),
 	});
+
+	const nextColor = $derived(colorAtMove(board.moves.length));
+	const moveIndex = $derived.by(() => buildMoveIndex(board.moves));
 
 	const starPoints = $derived.by<[number, number][]>(() => {
 		const pad = Math.floor(boardSize / 5);
@@ -77,10 +78,6 @@
 		];
 	});
 
-	function coordinateAt(col: number, row: number): Coordinate {
-		return `${Horizontal[col]}${boardSize - row}` as Coordinate;
-	}
-
 	function getCellFillColor(coordinate: Coordinate, color: Color | undefined): ClassValue {
 		if (color) {
 			return pieceFillColors[color];
@@ -88,18 +85,10 @@
 		if (coordinate === selected) {
 			return pieceFillColors[nextColor];
 		}
-		if (!disabled && coordinate === hoverCoordinate) {
+		if (!disabled && coordinate === interaction.hoverCoordinate) {
 			return pieceFillColors[nextColor];
 		}
 		return tw("fill-transparent");
-	}
-
-	function onCellClick(coordinate: Coordinate) {
-		if (disabled || board.board[coordinate]) {
-			return;
-		}
-		hoverCoordinate = undefined;
-		onPlay(coordinate);
 	}
 </script>
 
@@ -113,9 +102,7 @@
 		"mx-auto block h-full max-h-full w-full max-w-full touch-manipulation select-none",
 		!disabled && "cursor-pointer",
 	]}
-	onpointerleave={() => {
-		hoverCoordinate = undefined;
-	}}
+	onpointerleave={interaction.clearHover}
 	oncontextmenu={(event) => event.preventDefault()}
 >
 	<!-- Covers the full viewBox (not just the grid) so the coordinate labels sit on the board
@@ -124,8 +111,8 @@
 
 	{#each { length: boardSize } as _, i}
 		<text
-			x={marginX - 0.75}
-			y={marginTop + i}
+			x={MARGIN_X - 0.75}
+			y={MARGIN_TOP + i}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -134,8 +121,8 @@
 			{boardSize - i}
 		</text>
 		<text
-			x={marginX + lastIndex + 0.75}
-			y={marginTop + i}
+			x={MARGIN_X + lastIndex + 0.75}
+			y={MARGIN_TOP + i}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -144,8 +131,8 @@
 			{boardSize - i}
 		</text>
 		<text
-			x={marginX + i}
-			y={marginTop + lastIndex + 0.75}
+			x={MARGIN_X + i}
+			y={MARGIN_TOP + lastIndex + 0.75}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -157,25 +144,25 @@
 
 	{#each { length: boardSize } as _, i}
 		<line
-			x1={marginX + i}
-			y1={marginTop}
-			x2={marginX + i}
-			y2={marginTop + lastIndex}
+			x1={MARGIN_X + i}
+			y1={MARGIN_TOP}
+			x2={MARGIN_X + i}
+			y2={MARGIN_TOP + lastIndex}
 			class="stroke-base-content"
 			stroke-width="0.03"
 		/>
 		<line
-			x1={marginX}
-			y1={marginTop + i}
-			x2={marginX + lastIndex}
-			y2={marginTop + i}
+			x1={MARGIN_X}
+			y1={MARGIN_TOP + i}
+			x2={MARGIN_X + lastIndex}
+			y2={MARGIN_TOP + i}
 			class="stroke-base-content"
 			stroke-width="0.03"
 		/>
 	{/each}
 	<rect
-		x={marginX}
-		y={marginTop}
+		x={MARGIN_X}
+		y={MARGIN_TOP}
 		width={lastIndex}
 		height={lastIndex}
 		fill="none"
@@ -185,8 +172,8 @@
 
 	{#each starPoints as [sx, sy] (`${sx},${sy}`)}
 		<circle
-			cx={marginX + sx}
-			cy={marginTop + sy}
+			cx={MARGIN_X + sx}
+			cy={MARGIN_TOP + sy}
 			r={style.starRadius}
 			class="fill-base-content"
 		/>
@@ -203,25 +190,24 @@
 			<!-- svelte-ignore a11y_click_events_have_key_events -- 225 cells; not keyboard-navigable -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -- see above -->
 			<g
-				onclick={() => onCellClick(coordinate)}
-				onpointerenter={() => {
-					if (!disabled && board.board[coordinate] === undefined) {
-						hoverCoordinate = coordinate;
-					}
-				}}
+				onclick={() => interaction.onCellClick(coordinate)}
+				onpointerenter={() => interaction.onCellEnter(coordinate)}
 			>
 				<rect
-					x={marginX + col - 0.5}
-					y={marginTop + row - 0.5}
+					x={MARGIN_X + col - 0.5}
+					y={MARGIN_TOP + row - 0.5}
 					width="1"
 					height="1"
 					fill="transparent"
 				/>
 				<circle
-					cx={marginX + col}
-					cy={marginTop + row}
+					cx={MARGIN_X + col}
+					cy={MARGIN_TOP + row}
 					r={style.pieceRadius}
-					opacity={!color && !isSelected && !disabled && coordinate === hoverCoordinate
+					opacity={!color &&
+					!isSelected &&
+					!disabled &&
+					coordinate === interaction.hoverCoordinate
 						? style.hoverAlpha
 						: 1}
 					class={[
@@ -233,8 +219,8 @@
 				/>
 				{#if index !== undefined && color !== undefined}
 					<text
-						x={marginX + col}
-						y={marginTop + row}
+						x={MARGIN_X + col}
+						y={MARGIN_TOP + row}
 						font-size={style.indexFontSize}
 						font-weight="bold"
 						text-anchor="middle"

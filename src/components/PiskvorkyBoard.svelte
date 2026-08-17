@@ -1,11 +1,20 @@
 <script lang="ts">
-	import type { Board } from "../game/Board.svelte.ts";
+	import type { Board } from "../game/Board.svelte";
 	import { Color } from "../game/Color";
+	import { colorAtMove } from "../game/colorAtMove";
 	import { tw } from "@juvofy/lib/utils/tw";
 	import type { ClassValue } from "svelte/elements";
 	import type { Coordinate } from "../game/coordinate/Coordinate.js";
 	import { boardSize } from "../game/boardSize.js";
 	import { Horizontal } from "../game/coordinate/Horizontal.js";
+	import {
+		BoardInteraction,
+		coordinateAt,
+		MARGIN_BOTTOM,
+		MARGIN_TOP,
+		MARGIN_X,
+		MIN_CELL_SIZE_PX,
+	} from "./boardShared.svelte";
 
 	const {
 		board,
@@ -19,20 +28,10 @@
 		selected?: Coordinate;
 	} = $props();
 
-	const lastIndex = boardSize - 1;
-
-	// Layout constants, in SVG user units (1 unit = 1 cell), so the whole board scales via viewBox.
 	// Unlike GomokuBoard, pieces live inside cells, not on grid intersections, so the grid spans
 	// boardSize cells (not boardSize - 1 gaps) and coordinate labels sit outside that extra cell.
-	const marginX = 1.4;
-	const marginTop = 0.7;
-	const marginBottom = 1.2;
-	const viewBoxWidth = boardSize + marginX * 2;
-	const viewBoxHeight = boardSize + marginTop + marginBottom;
-
-	// Below this, cells get too small to comfortably tap/read (especially on mobile), so the board
-	// stops shrinking and its scroll container (see App.svelte) takes over instead of the cells.
-	const MIN_CELL_SIZE_PX = 32;
+	const viewBoxWidth = boardSize + MARGIN_X * 2;
+	const viewBoxHeight = boardSize + MARGIN_TOP + MARGIN_BOTTOM;
 	const minWidth = viewBoxWidth * MIN_CELL_SIZE_PX;
 	const minHeight = viewBoxHeight * MIN_CELL_SIZE_PX;
 
@@ -40,7 +39,6 @@
 		markStrokeWidth: 0.09,
 		markRadius: 0.32,
 		markPad: 0.22,
-		indexFontSize: 0.32,
 		hoverAlpha: 0.4,
 	};
 
@@ -49,35 +47,19 @@
 		[Color.White]: tw("stroke-secondary"),
 	};
 
-	let hoverCoordinate = $state<Coordinate>();
-
-	const nextColor = $derived(board.moves.length % 2 ? Color.White : Color.Black);
-	const moveIndex = $derived.by(() => {
-		const map: Partial<Record<Coordinate, number>> = {};
-		board.moves.forEach((coordinate, i) => (map[coordinate] = i));
-		return map;
+	const interaction = new BoardInteraction({
+		board: () => board,
+		disabled: () => disabled,
+		onPlay: (coordinate) => onPlay(coordinate),
 	});
 
-	function coordinateAt(col: number, row: number): Coordinate {
-		return `${Horizontal[col]}${boardSize - row}` as Coordinate;
-	}
+	const nextColor = $derived(colorAtMove(board.moves.length));
 
 	function isPreview(coordinate: Coordinate): boolean {
-		if (disabled) {
-			return false;
-		}
-		if (board.board[coordinate]) {
-			return false;
-		}
-		return coordinate === selected || coordinate === hoverCoordinate;
-	}
-
-	function onCellClick(coordinate: Coordinate) {
 		if (disabled || board.board[coordinate]) {
-			return;
+			return false;
 		}
-		hoverCoordinate = undefined;
-		onPlay(coordinate);
+		return coordinate === selected || coordinate === interaction.hoverCoordinate;
 	}
 </script>
 
@@ -91,9 +73,7 @@
 		"mx-auto block h-full max-h-full w-full max-w-full touch-manipulation select-none",
 		!disabled && "cursor-pointer",
 	]}
-	onpointerleave={() => {
-		hoverCoordinate = undefined;
-	}}
+	onpointerleave={interaction.clearHover}
 	oncontextmenu={(event) => event.preventDefault()}
 >
 	<!-- Covers the full viewBox (not just the grid) so the coordinate labels sit on the board
@@ -102,8 +82,8 @@
 
 	{#each { length: boardSize } as _, i}
 		<text
-			x={marginX - 0.75}
-			y={marginTop + i + 0.5}
+			x={MARGIN_X - 0.75}
+			y={MARGIN_TOP + i + 0.5}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -112,8 +92,8 @@
 			{boardSize - i}
 		</text>
 		<text
-			x={marginX + boardSize + 0.75}
-			y={marginTop + i + 0.5}
+			x={MARGIN_X + boardSize + 0.75}
+			y={MARGIN_TOP + i + 0.5}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -122,8 +102,8 @@
 			{boardSize - i}
 		</text>
 		<text
-			x={marginX + i + 0.5}
-			y={marginTop + boardSize + 0.75}
+			x={MARGIN_X + i + 0.5}
+			y={MARGIN_TOP + boardSize + 0.75}
 			font-size="0.35"
 			class="fill-base-content"
 			text-anchor="middle"
@@ -137,25 +117,25 @@
 	     inside the squares they form. -->
 	{#each { length: boardSize + 1 } as _, i}
 		<line
-			x1={marginX + i}
-			y1={marginTop}
-			x2={marginX + i}
-			y2={marginTop + boardSize}
+			x1={MARGIN_X + i}
+			y1={MARGIN_TOP}
+			x2={MARGIN_X + i}
+			y2={MARGIN_TOP + boardSize}
 			class="stroke-base-content"
 			stroke-width="0.03"
 		/>
 		<line
-			x1={marginX}
-			y1={marginTop + i}
-			x2={marginX + boardSize}
-			y2={marginTop + i}
+			x1={MARGIN_X}
+			y1={MARGIN_TOP + i}
+			x2={MARGIN_X + boardSize}
+			y2={MARGIN_TOP + i}
 			class="stroke-base-content"
 			stroke-width="0.03"
 		/>
 	{/each}
 	<rect
-		x={marginX}
-		y={marginTop}
+		x={MARGIN_X}
+		y={MARGIN_TOP}
 		width={boardSize}
 		height={boardSize}
 		fill="none"
@@ -169,24 +149,19 @@
 		{#each { length: boardSize } as _, col (col)}
 			{@const coordinate = coordinateAt(col, row)}
 			{@const color = board.board[coordinate]}
-			{@const index = moveIndex[coordinate]}
-			{@const cx = marginX + col + 0.5}
-			{@const cy = marginTop + row + 0.5}
+			{@const cx = MARGIN_X + col + 0.5}
+			{@const cy = MARGIN_TOP + row + 0.5}
 			{@const preview = isPreview(coordinate)}
 			{@const markColor = color ?? (preview ? nextColor : undefined)}
 			<!-- svelte-ignore a11y_click_events_have_key_events -- 225 cells; not keyboard-navigable -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -- see above -->
 			<g
-				onclick={() => onCellClick(coordinate)}
-				onpointerenter={() => {
-					if (!disabled && board.board[coordinate] === undefined) {
-						hoverCoordinate = coordinate;
-					}
-				}}
+				onclick={() => interaction.onCellClick(coordinate)}
+				onpointerenter={() => interaction.onCellEnter(coordinate)}
 			>
 				<rect
-					x={marginX + col}
-					y={marginTop + row}
+					x={MARGIN_X + col}
+					y={MARGIN_TOP + row}
 					width="1"
 					height="1"
 					fill="transparent"
@@ -194,8 +169,8 @@
 
 				{#if coordinate === selected}
 					<rect
-						x={marginX + col + 0.04}
-						y={marginTop + row + 0.04}
+						x={MARGIN_X + col + 0.04}
+						y={MARGIN_TOP + row + 0.04}
 						width="0.92"
 						height="0.92"
 						rx="0.08"

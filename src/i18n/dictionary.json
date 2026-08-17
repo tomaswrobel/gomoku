@@ -12,21 +12,23 @@
 	"winnerSuffix": { "cs": "({seat}) vyhrál!", "en": "({seat}) won!" },
 	"thinking": { "cs": "Počítač přemýšlí…", "en": "Computer is thinking…" },
 	"opening": {
-		"cs": "{seat} pokládá 3 úvodní kameny (Swap2).",
-		"en": "{seat} places the 3 opening stones (Swap2)."
+		"cs": "{seat} pokládá 3 úvodní {piece} (Swap2).",
+		"en": "{seat} places the 3 opening {piece} (Swap2)."
 	},
 	"deciding": {
 		"cs": "{seat} rozhoduje o výměně barev…",
 		"en": "{seat} is deciding whether to swap colors…"
 	},
 	"balance": {
-		"cs": "{seat} pokládá 2 vyrovnávací kameny.",
-		"en": "{seat} places 2 balancing stones."
+		"cs": "{seat} pokládá 2 vyrovnávací {piece}.",
+		"en": "{seat} places 2 balancing {piece}."
 	},
 	"turnPrefix": { "cs": "Na tahu:", "en": "To move:" },
 	"keep": { "cs": "Hrát {color}", "en": "Play {color}" },
 	"swap": { "cs": "Vyměnit a hrát {color}", "en": "Swap and play {color}" },
-	"placeTwoMore": { "cs": "Umístit ještě 2 kameny", "en": "Place 2 more stones" },
+	"placeTwoMore": { "cs": "Umístit ještě 2 {piece}", "en": "Place 2 more {piece}" },
+	"pieceStones": { "cs": "kameny", "en": "stones" },
+	"pieceSymbols": { "cs": "symboly", "en": "symbols" },
 	"settings": { "cs": "Nastavení", "en": "Settings" },
 	"back": { "cs": "Zpět", "en": "Back" },
 	"language": { "cs": "Jazyk", "en": "Language" },

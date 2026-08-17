@@ -87,6 +87,19 @@
 		return i18n.t(color === Color.Black ? "blackColor" : "whiteColor");
 	}
 
+	// Swap2 status text mentions the pieces being placed; word it to match what the active board
+	// style actually renders (Piškvorky's X/O marks read as "symbols", Gomoku's discs as "stones").
+	const pieceWord = $derived(
+		i18n.t(Settings.value.boardStyle === BoardStyle.Piskvorky ? "pieceSymbols" : "pieceStones"),
+	);
+
+	// Board interaction (hover previews, clicks) doesn't apply while stepping through history, while
+	// the engine is thinking, or during a Swap2 decision — that phase is driven by the buttons above,
+	// not board clicks, so a hover preview there would be misleading.
+	const boardDisabled = $derived(
+		viewIndex !== null || game.thinking || game.decisionSeat !== null,
+	);
+
 	const isHumanDeciding = $derived(
 		viewIndex === null &&
 			game.decisionSeat !== null &&
@@ -156,7 +169,7 @@
 				size="sm"
 				variant="neutral"
 				disabled={game.phase !== Phase.Decide1}
-				aria-label={i18n.t("placeTwoMore")}
+				aria-label={i18n.t("placeTwoMore", { piece: pieceWord })}
 				onclick={() => game.placeTwoMore()}
 			>
 				<ChangeCircleIcon class="size-6 fill-current" />
@@ -186,11 +199,11 @@
 				{:else if game.thinking}
 					{i18n.t("thinking")}
 				{:else if game.phase === Phase.Opening}
-					{i18n.t("opening", { seat: i18n.t(Seat.Player1) })}
+					{i18n.t("opening", { seat: i18n.t(Seat.Player1), piece: pieceWord })}
 				{:else if game.decisionSeat}
 					{i18n.t("deciding", { seat: i18n.t(game.decisionSeat) })}
 				{:else if game.phase === Phase.Balance}
-					{i18n.t("balance", { seat: i18n.t(Seat.Player2) })}
+					{i18n.t("balance", { seat: i18n.t(Seat.Player2), piece: pieceWord })}
 				{:else}
 					<span class="flex items-center gap-1">
 						{i18n.t("turnPrefix")}
@@ -228,14 +241,14 @@
 	{#if Settings.value.boardStyle === BoardStyle.Piskvorky}
 		<PiskvorkyBoard
 			board={viewBoard}
-			disabled={viewIndex !== null || game.thinking}
+			disabled={boardDisabled}
 			selected={pendingMove}
 			onPlay={play}
 		/>
 	{:else}
 		<GomokuBoard
 			board={viewBoard}
-			disabled={viewIndex !== null || game.thinking}
+			disabled={boardDisabled}
 			selected={pendingMove}
 			onPlay={play}
 		/>
