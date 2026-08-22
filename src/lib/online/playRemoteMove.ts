@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Coordinate } from "$lib/game/coordinate/Coordinate";
+import type { Coordinate } from "$lib/game/coordinate/Coordinate.ts";
 import type { Database } from "$lib/supabase/database.types";
 
 export async function playRemoteMove(

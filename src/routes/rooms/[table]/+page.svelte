@@ -2,10 +2,10 @@
 	import { goto } from "$app/navigation";
 	import Card from "@juvofy/lib/components/display/Card";
 	import Button from "@juvofy/lib/components/actions/Button";
-	import { i18nContext } from "$lib/i18n/i18nContext";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import DiscordSignInButton from "$lib/auth/DiscordSignInButton.svelte";
-	import { sitAtTable } from "$lib/online/sitAtTable";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client";
+	import { sitAtTable } from "$lib/online/sitAtTable.ts";
+	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 	import type { TimeControl } from "$lib/supabase/database.types";
 	import type { PageProps } from "./$types";
 

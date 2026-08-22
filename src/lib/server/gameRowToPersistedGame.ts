@@ -1,10 +1,10 @@
-import type { Color } from "$lib/game/Color";
-import { Controller } from "$lib/game/Controller";
-import type { Coordinate } from "$lib/game/coordinate/Coordinate";
-import { OpeningRule } from "$lib/game/OpeningRule";
-import type { PersistedGame } from "$lib/game/PersistedGame";
-import { Phase } from "$lib/game/Phase";
-import { Seat } from "$lib/game/Seat";
+import type { Color } from "$lib/game/Color.ts";
+import { Controller } from "$lib/game/Controller.ts";
+import type { Coordinate } from "$lib/game/coordinate/Coordinate.ts";
+import { OpeningRule } from "$lib/game/OpeningRule.ts";
+import type { PersistedGame } from "$lib/game/PersistedGame.ts";
+import { Phase } from "$lib/game/Phase.ts";
+import { Seat } from "$lib/game/Seat.ts";
 import type { Database } from "$lib/supabase/database.types";
 
 type GameRow = Database["public"]["Tables"]["games"]["Row"];

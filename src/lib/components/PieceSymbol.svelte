@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { BoardStyle } from "../settings/BoardStyle";
-	import { Color } from "../game/Color";
-	import { Settings } from "../settings/settings";
+	import { BoardStyle } from "../settings/BoardStyle.ts";
+	import { Color } from "../game/Color.ts";
+	import { Settings } from "../settings/settings.ts";
 
 	const { color, class: className = "size-5" }: { color: Color; class?: string } = $props();
 

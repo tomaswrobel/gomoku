@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Card from "@juvofy/lib/components/display/Card";
 	import Button from "@juvofy/lib/components/actions/Button";
-	import { i18nContext } from "$lib/i18n/i18nContext";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import DiscordSignInButton from "$lib/auth/DiscordSignInButton.svelte";
 	import type { PageProps } from "./$types";
 

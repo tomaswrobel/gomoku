@@ -12,7 +12,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"check": "oxfmt . --check && svelte-check --tsconfig ./tsconfig.json && oxlint"
+		"check": "oxfmt . --check && svelte-check --tsconfig ./tsconfig.json && oxlint --type-aware"
 	},
 	"dependencies": {
 		"@juvofy/lib": "github:Juvofy/base#v1.2.3",

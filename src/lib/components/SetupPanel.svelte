@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Button from "@juvofy/lib/components/actions/Button";
 	import Card from "@juvofy/lib/components/display/Card";
-	import { Controller } from "../game/Controller";
-	import { i18nContext } from "../i18n/i18nContext";
-	import { Seat } from "../game/Seat";
+	import { Controller } from "../game/Controller.ts";
+	import { i18nContext } from "../i18n/i18nContext.ts";
+	import { Seat } from "../game/Seat.ts";
 
 	let {
 		controllers = $bindable(),

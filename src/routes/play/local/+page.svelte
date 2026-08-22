@@ -2,12 +2,12 @@
 	import BoardSection from "$lib/components/Board.svelte";
 	import SetupPanel from "$lib/components/SetupPanel.svelte";
 	import { StorageState } from "$lib/settings/StorageState.svelte";
-	import { Controller } from "$lib/game/Controller";
+	import { Controller } from "$lib/game/Controller.ts";
 	import { Game } from "$lib/game/Game.svelte";
-	import type { PersistedGame } from "$lib/game/PersistedGame";
-	import { Phase } from "$lib/game/Phase";
-	import { Seat } from "$lib/game/Seat";
-	import { Settings } from "$lib/settings/settings";
+	import type { PersistedGame } from "$lib/game/PersistedGame.ts";
+	import { Phase } from "$lib/game/Phase.ts";
+	import { Seat } from "$lib/game/Seat.ts";
+	import { Settings } from "$lib/settings/settings.ts";
 
 	const persistedGame = new StorageState<PersistedGame | null>("local", "gomoku:game", null);
 

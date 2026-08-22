@@ -1,7 +1,7 @@
 import type { Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
-import { createSupabaseServerClient } from "$lib/supabase/server";
-import { detectLocaleFromHeader } from "$lib/i18n/detectLocale";
+import { createSupabaseServerClient } from "$lib/supabase/server.ts";
+import { detectLocaleFromHeader } from "$lib/i18n/detectLocale.ts";
 
 const supabase: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient(event);

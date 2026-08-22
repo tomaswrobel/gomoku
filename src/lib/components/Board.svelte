@@ -10,17 +10,17 @@
 	import GomokuBoard from "./GomokuBoard.svelte";
 	import PieceSymbol from "./PieceSymbol.svelte";
 	import PiskvorkyBoard from "./PiskvorkyBoard.svelte";
-	import { BoardStyle } from "../settings/BoardStyle";
+	import { BoardStyle } from "../settings/BoardStyle.ts";
 	import { Board as GameBoard } from "../game/Board.svelte";
-	import { Color, oppositeColor } from "../game/Color";
-	import type { Coordinate } from "../game/coordinate/Coordinate";
-	import { Controller } from "../game/Controller";
-	import { Decision } from "../game/Decision";
+	import { Color, oppositeColor } from "../game/Color.ts";
+	import type { Coordinate } from "../game/coordinate/Coordinate.ts";
+	import { Controller } from "../game/Controller.ts";
+	import { Decision } from "../game/Decision.ts";
 	import type { Game } from "../game/Game.svelte";
-	import { i18nContext } from "../i18n/i18nContext";
-	import { Phase } from "../game/Phase";
-	import { Seat } from "../game/Seat";
-	import { Settings } from "../settings/settings";
+	import { i18nContext } from "../i18n/i18nContext.ts";
+	import { Phase } from "../game/Phase.ts";
+	import { Seat } from "../game/Seat.ts";
+	import { Settings } from "../settings/settings.ts";
 
 	const { game, onBackToSetup }: { game: Game; onBackToSetup(): void } = $props();
 

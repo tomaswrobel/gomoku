@@ -1,21 +1,21 @@
 import { Board } from "./Board.svelte";
-import { Color, oppositeColor } from "./Color";
-import { colorAtMove } from "./colorAtMove";
-import { Controller } from "./Controller";
-import type { Coordinate } from "./coordinate/Coordinate";
-import { Decision } from "./Decision";
-import { fromProtocol } from "./coordinate/fromProtocol";
-import { fromProtocolList } from "./coordinate/fromProtocolList";
-import { RapfiEngine } from "../engine/RapfiEngine";
-import { toProtocol } from "./coordinate/toProtocol";
-import { Phase } from "./Phase";
-import type { PersistedGame } from "./PersistedGame";
-import { OppositeSeat, Seat } from "./Seat";
-import { boardSize } from "./boardSize";
-import { checkFiveInRow } from "./checkFiveInRow";
-import { difficultyTurnTime } from "./difficultyTurnTime";
-import { OpeningRule } from "./OpeningRule";
-import { Settings } from "../settings/settings";
+import { Color, oppositeColor } from "./Color.ts";
+import { colorAtMove } from "./colorAtMove.ts";
+import { Controller } from "./Controller.ts";
+import type { Coordinate } from "./coordinate/Coordinate.ts";
+import { Decision } from "./Decision.ts";
+import { fromProtocol } from "./coordinate/fromProtocol.ts";
+import { fromProtocolList } from "./coordinate/fromProtocolList.ts";
+import { RapfiEngine } from "../engine/RapfiEngine.ts";
+import { toProtocol } from "./coordinate/toProtocol.ts";
+import { Phase } from "./Phase.ts";
+import type { PersistedGame } from "./PersistedGame.ts";
+import { OppositeSeat, Seat } from "./Seat.ts";
+import { boardSize } from "./boardSize.ts";
+import { checkFiveInRow } from "./checkFiveInRow.ts";
+import { difficultyTurnTime } from "./difficultyTurnTime.ts";
+import { OpeningRule } from "./OpeningRule.ts";
+import { Settings } from "../settings/settings.ts";
 import { assert } from "@juvofy/lib/utils/assert";
 
 /// Orchestrates a full game under either the Gomoku Swap2 or standard opening rule: under Swap2,

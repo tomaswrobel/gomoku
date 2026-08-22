@@ -5,9 +5,9 @@
 	import SettingsIcon from "@material-symbols/svg-400/rounded/settings.svg?icon";
 	import HistoryIcon from "@material-symbols/svg-400/rounded/history.svg?icon";
 	import Logo from "$lib/components/Logo.svelte";
-	import { i18nContext } from "$lib/i18n/i18nContext";
-	import { translate as t } from "$lib/i18n/translate";
-	import { Settings } from "$lib/settings/settings";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
+	import { translate as t } from "$lib/i18n/translate.ts";
+	import { Settings } from "$lib/settings/settings.ts";
 	import DiscordSignInButton from "$lib/auth/DiscordSignInButton.svelte";
 	import type { LayoutProps } from "./$types";
 

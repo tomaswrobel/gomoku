@@ -1,4 +1,4 @@
-import { Locale } from "./Locale";
+import { Locale } from "./Locale.ts";
 
 /// Picks a supported locale from the browser's language preference list, falling back to English.
 /// Slovak has no dictionary of its own and is close enough to Czech to reuse it.

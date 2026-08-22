@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "$lib/game/Board.svelte";
-import { checkFiveInRow } from "$lib/game/checkFiveInRow";
-import { Color } from "$lib/game/Color";
-import { colorAtMove } from "$lib/game/colorAtMove";
-import type { Coordinate } from "$lib/game/coordinate/Coordinate";
-import { OppositeSeat, Seat } from "$lib/game/Seat";
-import { playRemoteMove } from "./playRemoteMove";
-import { subscribeToGame } from "./subscribeToGame";
+import { checkFiveInRow } from "$lib/game/checkFiveInRow.ts";
+import { Color } from "$lib/game/Color.ts";
+import { colorAtMove } from "$lib/game/colorAtMove.ts";
+import type { Coordinate } from "$lib/game/coordinate/Coordinate.ts";
+import { OppositeSeat, Seat } from "$lib/game/Seat.ts";
+import { playRemoteMove } from "./playRemoteMove.ts";
+import { subscribeToGame } from "./subscribeToGame.ts";
 import type { Database } from "$lib/supabase/database.types";
 
 type GameRow = Database["public"]["Tables"]["games"]["Row"];

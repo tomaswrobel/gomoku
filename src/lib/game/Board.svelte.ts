@@ -1,5 +1,5 @@
-import { Color } from "./Color";
-import type { Coordinate } from "./coordinate/Coordinate";
+import { Color } from "./Color.ts";
+import type { Coordinate } from "./coordinate/Coordinate.ts";
 
 export class Board {
 	public readonly moves: Coordinate[];

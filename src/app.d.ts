@@ -1,5 +1,5 @@
 import type { SupabaseClient, Session } from "@supabase/supabase-js";
-import type { Locale } from "$lib/i18n/Locale";
+import type { Locale } from "$lib/i18n/Locale.ts";
 import type { Database } from "$lib/supabase/database.types";
 
 declare global {

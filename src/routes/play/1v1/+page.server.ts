@@ -1,4 +1,4 @@
-import { requireSession } from "$lib/auth/session";
+import { requireSession } from "$lib/auth/session.ts";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async (event) => {

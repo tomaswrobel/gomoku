@@ -5,12 +5,12 @@
 	import MailIcon from "@material-symbols/svg-400/rounded/mail.svg?icon";
 	import LinkIcon from "@material-symbols/svg-400/rounded/link.svg?icon";
 	import ThemeChooser from "./ThemeChooser.svelte";
-	import { BoardStyle } from "../settings/BoardStyle";
-	import { Difficulty } from "../settings/Difficulty";
-	import { i18nContext } from "../i18n/i18nContext";
-	import { Locale } from "../i18n/Locale";
-	import { OpeningRule } from "../game/OpeningRule";
-	import { Settings } from "../settings/settings";
+	import { BoardStyle } from "../settings/BoardStyle.ts";
+	import { Difficulty } from "../settings/Difficulty.ts";
+	import { i18nContext } from "../i18n/i18nContext.ts";
+	import { Locale } from "../i18n/Locale.ts";
+	import { OpeningRule } from "../game/OpeningRule.ts";
+	import { Settings } from "../settings/settings.ts";
 	import packageJson from "../../../package.json";
 
 	const { onBack }: { onBack(): void } = $props();

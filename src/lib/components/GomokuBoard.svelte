@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Board } from "../game/Board.svelte";
-	import { Color } from "../game/Color";
-	import { colorAtMove } from "../game/colorAtMove";
+	import { Color } from "../game/Color.ts";
+	import { colorAtMove } from "../game/colorAtMove.ts";
 	import { tw } from "@juvofy/lib/utils/tw";
 	import type { ClassValue } from "svelte/elements";
 	import type { Coordinate } from "../game/coordinate/Coordinate.js";

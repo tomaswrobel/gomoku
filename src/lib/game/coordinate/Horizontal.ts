@@ -1,4 +1,4 @@
-import { array } from "../array";
+import { array } from "../array.ts";
 
 export const Horizontal = array(
 	"A",

@@ -2,7 +2,7 @@
 	import Button from "@juvofy/lib/components/actions/Button";
 	import Card from "@juvofy/lib/components/display/Card";
 	import BackIcon from "@material-symbols/svg-400/rounded/arrow_back.svg?icon";
-	import { i18nContext } from "../i18n/i18nContext";
+	import { i18nContext } from "../i18n/i18nContext.ts";
 	import type { Game } from "../game/Game.svelte";
 
 	const { game, onBack }: { game: Game | null; onBack(): void } = $props();

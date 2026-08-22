@@ -1,5 +1,5 @@
 import dictionary from "./dictionary.json";
-import type { Locale } from "./Locale";
+import type { Locale } from "./Locale.ts";
 
 type MessageKey = keyof typeof dictionary;
 

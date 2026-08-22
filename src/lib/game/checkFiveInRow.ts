@@ -1,7 +1,7 @@
-import { boardSize } from "./boardSize";
-import type { Color } from "./Color";
-import type { Coordinate } from "./coordinate/Coordinate";
-import { Horizontal } from "./coordinate/Horizontal";
+import { boardSize } from "./boardSize.ts";
+import type { Color } from "./Color.ts";
+import type { Coordinate } from "./coordinate/Coordinate.ts";
+import { Horizontal } from "./coordinate/Horizontal.ts";
 
 const DIRECTIONS: [number, number][] = [
 	[1, 0],

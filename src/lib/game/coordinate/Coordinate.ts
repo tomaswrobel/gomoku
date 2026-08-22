@@ -1,5 +1,5 @@
-import { isHorizontal, type Horizontal } from "./Horizontal";
-import { isVertical, type Vertical } from "./Vertical";
+import { isHorizontal, type Horizontal } from "./Horizontal.ts";
+import { isVertical, type Vertical } from "./Vertical.ts";
 
 export type Coordinate = `${Horizontal}${Vertical}`;
 

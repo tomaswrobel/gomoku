@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Card from "@juvofy/lib/components/display/Card";
-	import { i18nContext } from "$lib/i18n/i18nContext";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import type { PageProps } from "./$types";
 
 	const { data }: PageProps = $props();

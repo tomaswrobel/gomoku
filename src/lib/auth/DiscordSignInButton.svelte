@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from "@juvofy/lib/components/actions/Button";
-	import { i18nContext } from "$lib/i18n/i18nContext";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
+	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 
 	const i18n = i18nContext.get();
 

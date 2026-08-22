@@ -1,10 +1,10 @@
-import { detectLocale } from "../i18n/detectLocale";
-import { BoardStyle } from "./BoardStyle";
-import { Difficulty } from "./Difficulty";
-import type { Locale } from "../i18n/Locale";
-import { OpeningRule } from "../game/OpeningRule";
+import { detectLocale } from "../i18n/detectLocale.ts";
+import { BoardStyle } from "./BoardStyle.ts";
+import { Difficulty } from "./Difficulty.ts";
+import type { Locale } from "../i18n/Locale.ts";
+import { OpeningRule } from "../game/OpeningRule.ts";
 import { StorageState } from "./StorageState.svelte";
-import { Theme } from "./Theme";
+import { Theme } from "./Theme.ts";
 import { version } from "../../../package.json";
 
 const [major, minor, _patch] = version.split(".");

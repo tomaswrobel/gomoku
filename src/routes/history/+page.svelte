@@ -4,10 +4,10 @@
 	import Button from "@juvofy/lib/components/actions/Button";
 	import BackIcon from "@material-symbols/svg-400/rounded/arrow_back.svg?icon";
 	import HistoryPanel from "$lib/components/HistoryPanel.svelte";
-	import { i18nContext } from "$lib/i18n/i18nContext";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import { StorageState } from "$lib/settings/StorageState.svelte";
 	import { Game } from "$lib/game/Game.svelte";
-	import type { PersistedGame } from "$lib/game/PersistedGame";
+	import type { PersistedGame } from "$lib/game/PersistedGame.ts";
 	import type { PageProps } from "./$types";
 
 	const { data }: PageProps = $props();

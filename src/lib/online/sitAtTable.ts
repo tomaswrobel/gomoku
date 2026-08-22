@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, TimeControl } from "$lib/supabase/database.types";
+import type { Database, TimeControl } from "$lib/supabase/database.types.ts";
 
 export async function sitAtTable(
 	supabase: SupabaseClient<Database>,

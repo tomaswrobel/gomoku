@@ -1,6 +1,6 @@
-import { boardSize } from "../game/boardSize";
-import type { Coordinate } from "../game/coordinate/Coordinate";
-import { Horizontal } from "../game/coordinate/Horizontal";
+import { boardSize } from "../game/boardSize.ts";
+import type { Coordinate } from "../game/coordinate/Coordinate.ts";
+import { Horizontal } from "../game/coordinate/Horizontal.ts";
 
 /// Layout constants shared by both board renderers, in SVG user units (1 unit = 1 cell), so the
 /// whole board scales via viewBox.

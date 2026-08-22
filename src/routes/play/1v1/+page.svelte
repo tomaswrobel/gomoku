@@ -2,10 +2,10 @@
 	import { goto } from "$app/navigation";
 	import Card from "@juvofy/lib/components/display/Card";
 	import Button from "@juvofy/lib/components/actions/Button";
-	import { i18nContext } from "$lib/i18n/i18nContext";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client";
+	import { i18nContext } from "$lib/i18n/i18nContext.ts";
+	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 	import type { TimeControl } from "$lib/supabase/database.types";
-	import { OpeningRule } from "$lib/game/OpeningRule";
+	import { OpeningRule } from "$lib/game/OpeningRule.ts";
 	import type { PageProps } from "./$types";
 
 	const { data }: PageProps = $props();
