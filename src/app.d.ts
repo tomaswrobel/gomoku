@@ -13,6 +13,12 @@ declare global {
 		interface PageData {
 			session: Session | null;
 			locale: Locale;
+			// Only guaranteed once the root `+layout.ts` universal load has run (it always does,
+			// before any page renders) — optional here because `+page.server.ts` loads run before
+			// it and can't type-check against data they don't themselves produce.
+			supabaseUrl?: string;
+			supabasePublishableKey?: string;
+			supabase?: SupabaseClient<Database>;
 		}
 		// interface Error {}
 		// interface Platform {}

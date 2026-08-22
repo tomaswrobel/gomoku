@@ -3,7 +3,6 @@
 	import Card from "@juvofy/lib/components/display/Card";
 	import Button from "@juvofy/lib/components/actions/Button";
 	import { i18nContext } from "$lib/i18n/i18nContext.ts";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 	import type { TimeControl } from "$lib/supabase/database.types";
 	import { OpeningRule } from "$lib/game/OpeningRule.ts";
 	import type { PageProps } from "./$types";
@@ -25,8 +24,7 @@
 		}
 		creating = true;
 		try {
-			const supabase = createSupabaseBrowserClient();
-			const { data: game, error } = await supabase.rpc("create_game", {
+			const { data: game, error } = await data.supabase!.rpc("create_game", {
 				p_kind: "1v1",
 				p_table_id: null,
 				p_opponent_id: opponentId,

@@ -5,7 +5,6 @@
 	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import DiscordSignInButton from "$lib/auth/DiscordSignInButton.svelte";
 	import { sitAtTable } from "$lib/online/sitAtTable.ts";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 	import type { TimeControl } from "$lib/supabase/database.types";
 	import type { PageProps } from "./$types";
 
@@ -27,8 +26,7 @@
 	async function join() {
 		joining = true;
 		try {
-			const supabase = createSupabaseBrowserClient();
-			const game = await sitAtTable(supabase, data.tableId, timeControl);
+			const game = await sitAtTable(data.supabase!, data.tableId, timeControl);
 			if (game) {
 				await goto(`/game/${game.id}`);
 			}

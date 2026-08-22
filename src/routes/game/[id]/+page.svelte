@@ -5,7 +5,6 @@
 	import { i18nContext } from "$lib/i18n/i18nContext.ts";
 	import { RemoteGame } from "$lib/online/RemoteGame.svelte";
 	import { RemoteClock } from "$lib/online/RemoteClock.svelte";
-	import { createSupabaseBrowserClient } from "$lib/supabase/client.ts";
 	import type { PageProps } from "./$types";
 
 	const { data }: PageProps = $props();
@@ -27,8 +26,12 @@
 		if (!isLive) {
 			return;
 		}
-		const supabase = createSupabaseBrowserClient();
-		const game = new RemoteGame(supabase, data.game, data.persistedGame.moves, data.viewerId);
+		const game = new RemoteGame(
+			data.supabase!,
+			data.game,
+			data.persistedGame.moves,
+			data.viewerId,
+		);
 		game.subscribe();
 		remote = game;
 		clock1 = new RemoteClock(data.game.player1_clock_ms, data.game.clock_running_since);
