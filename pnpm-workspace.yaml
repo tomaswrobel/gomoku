@@ -4,3 +4,4 @@ allowBuilds:
     "@juvofy/lib@https://codeload.github.com/Juvofy/base/tar.gz/15cb7e829df98bd0e4897d5302631a4571c151b5": true
     "@juvofy/lib@https://codeload.github.com/Juvofy/base/tar.gz/ad1a78a789101a6702f413aecf4881bff54680e7": true
     "@juvofy/lib@https://codeload.github.com/Juvofy/base/tar.gz/e92ee2092e290f10414f5a04a0f2c9928af29eb5": true
+    esbuild: true

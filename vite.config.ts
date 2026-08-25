@@ -1,16 +1,16 @@
 import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { VitePWA } from "vite-plugin-pwa";
+import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import { svgPlugin } from "@juvofy/lib/vite/svgPlugin";
 
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [
-		svelte(),
+		sveltekit(),
 		tailwindcss(),
 		svgPlugin("icon"),
-		VitePWA({
+		SvelteKitPWA({
 			registerType: "autoUpdate",
 			includeAssets: ["favicon.svg"],
 			manifest: {

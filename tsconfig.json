@@ -1,4 +1,14 @@
 {
-	"files": [],
-	"references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"strict": true,
+		"noEmit": true,
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true
+	}
 }
