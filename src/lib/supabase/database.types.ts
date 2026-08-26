@@ -8,6 +8,8 @@ export type GameStatus = "waiting" | "active" | "finished" | "aborted";
 export type GameResult = "win" | "draw";
 export type TimeControl = "15" | "30" | "60";
 export type GameKind = "1v1" | "room";
+export type GamePhase = "opening" | "decide1" | "balance" | "decide2" | "playing";
+export type SwapDecision = "keep" | "swap";
 
 export interface Database {
 	public: {
@@ -42,6 +44,7 @@ export interface Database {
 					opening_rule: OpeningRule;
 					time_control: TimeControl;
 					status: GameStatus;
+					phase: GamePhase;
 					result: GameResult | null;
 					swapped: boolean;
 					winner_color: SeatColor | null;
@@ -113,11 +116,21 @@ export interface Database {
 				Args: { p_game_id: string };
 				Returns: Database["public"]["Tables"]["games"]["Row"];
 			};
+			decide_opening: {
+				Args: { p_game_id: string; p_choice: SwapDecision };
+				Returns: Database["public"]["Tables"]["games"]["Row"];
+			};
+			place_two_more: {
+				Args: { p_game_id: string };
+				Returns: Database["public"]["Tables"]["games"]["Row"];
+			};
 		};
 		Enums: {
 			opening_rule: OpeningRule;
 			seat_color: SeatColor;
 			game_status: GameStatus;
+			game_phase: GamePhase;
+			swap_decision: SwapDecision;
 			game_result: GameResult;
 			time_control: TimeControl;
 			game_kind: GameKind;

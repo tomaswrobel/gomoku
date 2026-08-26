@@ -257,7 +257,7 @@
 	},
 	"minutes30": {
 		"cs": "30 minut",
-		"en": "30 minut"
+		"en": "30 minutes"
 	},
 	"minutes60": {
 		"cs": "60 minut",
@@ -290,5 +290,21 @@
 	"remote": {
 		"cs": "Vzdálený hráč",
 		"en": "Remote player"
+	},
+	"onlineWinnerSuffix": {
+		"cs": "{name} vyhrál!",
+		"en": "{name} won!"
+	},
+	"openingRule": {
+		"cs": "Zahájení",
+		"en": "Opening"
+	},
+	"openingRuleSwap2": {
+		"cs": "Swap2",
+		"en": "Swap2"
+	},
+	"openingRuleStandard": {
+		"cs": "Standardní",
+		"en": "Standard"
 	}
 }

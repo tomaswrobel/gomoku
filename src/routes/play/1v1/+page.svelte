@@ -16,6 +16,7 @@
 		opponentId = data.opponents[0]?.id ?? "";
 	});
 	let timeControl = $state<TimeControl>("15");
+	let openingRule = $state<OpeningRule>(OpeningRule.Swap2);
 	let creating = $state(false);
 
 	async function createGame() {
@@ -28,7 +29,7 @@
 				p_kind: "1v1",
 				p_table_id: null,
 				p_opponent_id: opponentId,
-				p_opening_rule: OpeningRule.Swap2,
+				p_opening_rule: openingRule,
 				p_time_control: timeControl,
 			});
 			if (error) {
@@ -58,6 +59,11 @@
 				<option value="15">{i18n.t("minutes15")}</option>
 				<option value="30">{i18n.t("minutes30")}</option>
 				<option value="60">{i18n.t("minutes60")}</option>
+			</select>
+
+			<select class="select" bind:value={openingRule}>
+				<option value={OpeningRule.Swap2}>{i18n.t("openingRuleSwap2")}</option>
+				<option value={OpeningRule.Standard}>{i18n.t("openingRuleStandard")}</option>
 			</select>
 
 			<Button variant="primary" disabled={creating} onclick={createGame}>

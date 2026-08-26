@@ -1,5 +1,6 @@
--- URL-safe nanoid-style id generator, used as the default for games.id so game URLs are short and
--- non-enumerable without leaking table size the way a serial int would.
+-- Supabase installs pgcrypto into the `extensions` schema, not `public`; nanoid() had no
+-- search_path set, so gen_random_bytes() didn't resolve (error 42883). Fixes 0002_id_generation.sql.
+
 create or replace function nanoid(size int default 12)
 returns text
 language plpgsql

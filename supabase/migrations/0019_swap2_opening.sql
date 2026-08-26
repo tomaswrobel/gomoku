@@ -1,77 +1,16 @@
--- Coordinate <-> (x, y) helpers, matching src/lib/game/coordinate/*.ts: letters A-O (0-based x),
--- rows 1-15 (1-based, stored as 0-based y).
-create or replace function coord_to_xy(p_coordinate text, out x int, out y int)
-language plpgsql
-immutable
-as $$
-begin
-	x := ascii(upper(substr(p_coordinate, 1, 1))) - ascii('A');
-	y := substr(p_coordinate, 2)::int - 1;
-end;
-$$;
+-- Ports the Swap2 opening negotiation (src/lib/game/Game.svelte.ts's Opening/Decide1/Balance/
+-- Decide2 phases) to online play. Previously `play_move` always alternated Black/White by move
+-- parity from move 0, so `opening_rule = 'swap2'` was stored but never actually enforced online.
 
-create or replace function coord_from_xy(p_x int, p_y int)
-returns text
-language plpgsql
-immutable
-as $$
-begin
-	return chr(ascii('A') + p_x) || (p_y + 1)::text;
-end;
-$$;
+create type game_phase as enum ('opening', 'decide1', 'balance', 'decide2', 'playing');
+create type swap_decision as enum ('keep', 'swap');
 
--- Direction-scan win check, ported from src/lib/game/checkFiveInRow.ts. `p_overline_wins` mirrors
--- the client Settings.overlineWins flag: online games always play with overlineWins = false
--- (exactly 5), matching the default local ruleset.
-create or replace function check_five_in_row(p_game_id text, p_last text, p_color seat_color)
-returns boolean
-language plpgsql
-stable
-as $$
-declare
-	v_x0 int;
-	v_y0 int;
-	v_dx int;
-	v_dy int;
-	v_sign int;
-	v_x int;
-	v_y int;
-	v_count int;
-	v_directions int[][] := array[[1, 0], [0, 1], [1, 1], [1, -1]];
-	v_dir int;
-begin
-	select x, y into v_x0, v_y0 from coord_to_xy(p_last);
+alter table games add column phase game_phase not null default 'playing';
 
-	for v_dir in 1..4 loop
-		v_dx := v_directions[v_dir][1];
-		v_dy := v_directions[v_dir][2];
-		v_count := 1;
-		foreach v_sign in array array[-1, 1] loop
-			v_x := v_x0 + v_dx * v_sign;
-			v_y := v_y0 + v_dy * v_sign;
-			while v_x >= 0 and v_x < 15 and v_y >= 0 and v_y < 15 loop
-				if not exists (
-					select 1
-					from moves
-					where game_id = p_game_id
-						and coordinate = coord_from_xy(v_x, v_y)
-						and (case when move_number % 2 = 0 then 'Black' else 'White' end)::seat_color = p_color
-				) then
-					exit;
-				end if;
-				v_count := v_count + 1;
-				v_x := v_x + v_dx * v_sign;
-				v_y := v_y + v_dy * v_sign;
-			end loop;
-		end loop;
-		if v_count = 5 then
-			return true;
-		end if;
-	end loop;
-	return false;
-end;
-$$;
-
+-- create_game: swap2 games start in 'opening' with the clock NOT running yet — chess-clock
+-- semantics only apply once real play begins (decide_opening starts it on the decide1/decide2
+-- transition to 'playing'); standard games skip straight to 'playing' with the clock running
+-- immediately, exactly as before.
 create or replace function create_game(
 	p_kind game_kind,
 	p_table_id smallint,
@@ -89,6 +28,7 @@ declare
 	v_caller_name text;
 	v_opponent_name text;
 	v_bank_ms int;
+	v_phase game_phase;
 	v_game games%rowtype;
 begin
 	if v_caller is null then
@@ -102,15 +42,18 @@ begin
 	end if;
 
 	v_bank_ms := p_time_control::text::int * 60000;
+	v_phase := case when p_opening_rule = 'swap2' then 'opening' else 'playing' end;
 
 	insert into games (
-		kind, table_id, opening_rule, time_control, status,
+		kind, table_id, opening_rule, time_control, status, phase,
 		player1_id, player2_id, player1_name, player2_name,
 		player1_clock_ms, player2_clock_ms, started_at, clock_running_since
 	) values (
-		p_kind, p_table_id, p_opening_rule, p_time_control, 'active',
+		p_kind, p_table_id, p_opening_rule, p_time_control, 'active', v_phase,
 		v_caller, p_opponent_id, v_caller_name, v_opponent_name,
-		v_bank_ms, v_bank_ms, now(), now()
+		v_bank_ms, v_bank_ms,
+		case when v_phase = 'playing' then now() else null end,
+		case when v_phase = 'playing' then now() else null end
 	)
 	returning * into v_game;
 
@@ -157,14 +100,14 @@ begin
 	v_bank_ms := p_time_control::text::int * 60000;
 
 	insert into games (
-		kind, table_id, opening_rule, time_control, status,
+		kind, table_id, opening_rule, time_control, status, phase,
 		player1_id, player2_id, player1_name, player2_name,
 		player1_clock_ms, player2_clock_ms, started_at, clock_running_since
 	) values (
-		'room', p_table_id, 'swap2', p_time_control, 'active',
+		'room', p_table_id, 'swap2', p_time_control, 'active', 'opening',
 		v_other_seat.player_id, v_caller,
 		(select display_name from profiles where id = v_other_seat.player_id), v_caller_name,
-		v_bank_ms, v_bank_ms, now(), now()
+		v_bank_ms, v_bank_ms, null, null
 	)
 	returning * into v_game;
 
@@ -175,48 +118,113 @@ begin
 end;
 $$;
 
-create or replace function leave_table(p_table_id smallint)
-returns void
+-- Human equivalent of Game.svelte.ts's decide(): resolves the decide1 (Player2) or decide2
+-- (Player1) swap decision, ports assignSeatColor's swapped formula, and starts the clock — this is
+-- the moment real play begins, matching Board.svelte's untimed Opening/Decide/Balance phases.
+create or replace function decide_opening(p_game_id text, p_choice swap_decision)
+returns games
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-	v_caller uuid := auth.uid();
-	v_seat room_seats%rowtype;
 	v_game games%rowtype;
+	v_caller uuid := auth.uid();
+	v_move_count int;
+	v_next_color seat_color;
+	v_chosen_color seat_color;
+	v_expected_player uuid;
 begin
 	if v_caller is null then
 		raise exception 'not authenticated';
 	end if;
 
-	select * into v_seat from room_seats where table_id = p_table_id and player_id = v_caller for update;
+	select * into v_game from games where id = p_game_id for update;
 	if not found then
-		return;
+		raise exception 'game not found';
+	end if;
+	if v_game.status <> 'active' then
+		raise exception 'game not active';
+	end if;
+	if v_game.phase not in ('decide1', 'decide2') then
+		raise exception 'no swap decision pending';
 	end if;
 
-	if v_seat.game_id is not null then
-		select * into v_game from games where id = v_seat.game_id for update;
-		if v_game.status = 'active' or v_game.status = 'waiting' then
-			update games set
-				status = 'aborted',
-				result = 'win',
-				winner_color = case
-					when v_seat.player_id = v_game.player1_id then
-						case when v_game.swapped then 'Black' else 'White' end
-					else
-						case when v_game.swapped then 'White' else 'Black' end
-				end,
-				finished_at = now(),
-				clock_running_since = null
-			where id = v_game.id;
-		end if;
+	v_expected_player := case when v_game.phase = 'decide1' then v_game.player2_id else v_game.player1_id end;
+	if v_expected_player is distinct from v_caller then
+		raise exception 'not your decision';
 	end if;
 
-	delete from room_seats where table_id = p_table_id and seat = v_seat.seat;
+	select count(*) into v_move_count from moves where game_id = p_game_id;
+	v_next_color := case when v_move_count % 2 = 0 then 'Black' else 'White' end;
+	v_chosen_color := case
+		when p_choice = 'keep' then v_next_color
+		else (case when v_next_color = 'Black' then 'White' else 'Black' end)
+	end;
+
+	-- Mirrors assignSeatColor(seat, color): Player1 swapped iff they end up White,
+	-- Player2 (decider at decide1) swapped iff they end up Black.
+	v_game.swapped := case
+		when v_game.phase = 'decide1' then v_chosen_color = 'Black'
+		else v_chosen_color = 'White'
+	end;
+	v_game.phase := 'playing';
+	v_game.clock_running_since := now();
+	v_game.started_at := coalesce(v_game.started_at, now());
+
+	update games set
+		swapped = v_game.swapped,
+		phase = v_game.phase,
+		clock_running_since = v_game.clock_running_since,
+		started_at = v_game.started_at
+	where id = p_game_id;
+
+	return v_game;
 end;
 $$;
 
+-- Human equivalent of Game.svelte.ts's placeTwoMore(): decide1 responder opts to place 2 more
+-- neutral stones instead of deciding immediately.
+create or replace function place_two_more(p_game_id text)
+returns games
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+	v_game games%rowtype;
+	v_caller uuid := auth.uid();
+begin
+	if v_caller is null then
+		raise exception 'not authenticated';
+	end if;
+
+	select * into v_game from games where id = p_game_id for update;
+	if not found then
+		raise exception 'game not found';
+	end if;
+	if v_game.status <> 'active' then
+		raise exception 'game not active';
+	end if;
+	if v_game.phase <> 'decide1' then
+		raise exception 'not awaiting the decide1 decision';
+	end if;
+	if v_game.player2_id is distinct from v_caller then
+		raise exception 'not your decision';
+	end if;
+
+	v_game.phase := 'balance';
+	update games set phase = v_game.phase where id = p_game_id;
+
+	return v_game;
+end;
+$$;
+
+-- Phase-aware rewrite: Opening (Player1, 3 stones) and Balance (Player2, 2 stones) place neutral
+-- stones by fixed seat, untimed, with no win check (matches Board.svelte's humanPlay, which only
+-- calls finishTurn — the win/draw check — from the Playing phase). decide1/decide2 must go through
+-- decide_opening instead of play_move. 'playing' keeps the original swapped+parity turn logic,
+-- clock deduction, and win/draw check unchanged.
 create or replace function play_move(p_game_id text, p_coordinate text)
 returns games
 language plpgsql
@@ -243,14 +251,23 @@ begin
 	if v_game.status <> 'active' then
 		raise exception 'game not active';
 	end if;
+	if v_game.phase in ('decide1', 'decide2') then
+		raise exception 'awaiting swap decision';
+	end if;
 
 	select count(*) into v_move_number from moves where game_id = p_game_id;
-	v_seat_color := case when v_move_number % 2 = 0 then 'Black' else 'White' end;
 
-	if (v_seat_color = 'Black') = not v_game.swapped then
+	if v_game.phase = 'opening' then
 		v_expected_player := v_game.player1_id;
-	else
+	elsif v_game.phase = 'balance' then
 		v_expected_player := v_game.player2_id;
+	else
+		v_seat_color := case when v_move_number % 2 = 0 then 'Black' else 'White' end;
+		if (v_seat_color = 'Black') = not v_game.swapped then
+			v_expected_player := v_game.player1_id;
+		else
+			v_expected_player := v_game.player2_id;
+		end if;
 	end if;
 	if v_expected_player is distinct from v_caller then
 		raise exception 'not your turn';
@@ -261,6 +278,26 @@ begin
 	end if;
 	if exists (select 1 from moves where game_id = p_game_id and coordinate = p_coordinate) then
 		raise exception 'cell occupied';
+	end if;
+
+	if v_game.phase = 'opening' then
+		insert into moves (game_id, move_number, coordinate, player_id)
+		values (p_game_id, v_move_number, p_coordinate, v_caller);
+		if v_move_number + 1 >= 3 then
+			v_game.phase := 'decide1';
+			update games set phase = v_game.phase where id = p_game_id;
+		end if;
+		return v_game;
+	end if;
+
+	if v_game.phase = 'balance' then
+		insert into moves (game_id, move_number, coordinate, player_id)
+		values (p_game_id, v_move_number, p_coordinate, v_caller);
+		if v_move_number + 1 >= 5 then
+			v_game.phase := 'decide2';
+			update games set phase = v_game.phase where id = p_game_id;
+		end if;
+		return v_game;
 	end if;
 
 	v_elapsed_ms := 0;

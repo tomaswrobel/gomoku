@@ -5,9 +5,11 @@ import { Color } from "$lib/game/Color.ts";
 import { colorAtMove } from "$lib/game/colorAtMove.ts";
 import type { Coordinate } from "$lib/game/coordinate/Coordinate.ts";
 import { OppositeSeat, Seat } from "$lib/game/Seat.ts";
+import { decideOpening } from "./decideOpening.ts";
+import { placeTwoMore as placeTwoMoreRemote } from "./placeTwoMore.ts";
 import { playRemoteMove } from "./playRemoteMove.ts";
 import { subscribeToGame } from "./subscribeToGame.ts";
-import type { Database } from "$lib/supabase/database.types";
+import type { Database, SwapDecision } from "$lib/supabase/database.types";
 
 type GameRow = Database["public"]["Tables"]["games"]["Row"];
 
@@ -21,6 +23,7 @@ export class RemoteGame {
 	public readonly viewerId: string | null;
 
 	public status = $state<GameRow["status"]>("waiting");
+	public phase = $state<GameRow["phase"]>("playing");
 	public swapped = $state(false);
 	public winnerColor = $state<GameRow["winner_color"]>(null);
 	public player1ClockMs = $state(0);
@@ -66,9 +69,32 @@ export class RemoteGame {
 		return this.swapped ? (base === Color.Black ? Color.White : Color.Black) : base;
 	});
 
-	public readonly canMove: boolean = $derived.by(
-		() => this.status === "active" && this.viewerColor === this.nextColor,
-	);
+	/// Mirrors Game.svelte.ts's decisionSeat: which seat owes a swap decision, or null mid-play.
+	public readonly decisionSeat: Seat | null = $derived.by(() => {
+		if (this.phase === "decide1") {
+			return Seat.Player2;
+		}
+		if (this.phase === "decide2") {
+			return Seat.Player1;
+		}
+		return null;
+	});
+
+	public readonly canMove: boolean = $derived.by(() => {
+		if (this.status !== "active") {
+			return false;
+		}
+		if (this.phase === "opening") {
+			return this.viewerSeat === Seat.Player1;
+		}
+		if (this.phase === "balance") {
+			return this.viewerSeat === Seat.Player2;
+		}
+		if (this.phase === "playing") {
+			return this.viewerColor === this.nextColor;
+		}
+		return false;
+	});
 
 	public subscribe(): void {
 		this.unsubscribe = subscribeToGame(this.supabase, this.gameId, {
@@ -89,6 +115,7 @@ export class RemoteGame {
 
 	private applyRow(row: GameRow): void {
 		this.status = row.status;
+		this.phase = row.phase;
 		this.swapped = row.swapped;
 		this.winnerColor = row.winner_color;
 		this.player1ClockMs = row.player1_clock_ms;
@@ -119,6 +146,24 @@ export class RemoteGame {
 	public checkOptimisticWin(): boolean {
 		const last = this.board.moves[this.board.moves.length - 1];
 		return last !== undefined && checkFiveInRow(this.board.board, last, false);
+	}
+
+	/// Human equivalent of Game.svelte.ts's decide(): resolves the decide1/decide2 swap choice.
+	/// Not applied optimistically — phase/swapped flip from the next Postgres Changes event, same
+	/// as every other server-decided field on this class.
+	public async decide(choice: SwapDecision): Promise<void> {
+		if (this.decisionSeat !== this.viewerSeat) {
+			return;
+		}
+		await decideOpening(this.supabase, this.gameId, choice);
+	}
+
+	/// Human equivalent of Game.svelte.ts's placeTwoMore(): only available to the decide1 responder.
+	public async placeTwoMore(): Promise<void> {
+		if (this.phase !== "decide1" || this.viewerSeat !== Seat.Player2) {
+			return;
+		}
+		await placeTwoMoreRemote(this.supabase, this.gameId);
 	}
 
 	public seatFor(color: Color): Seat {

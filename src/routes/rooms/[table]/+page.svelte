@@ -27,7 +27,7 @@
 		joining = true;
 		try {
 			const game = await sitAtTable(data.supabase!, data.tableId, timeControl);
-			if (game) {
+			if (game?.id) {
 				await goto(`/game/${game.id}`);
 			}
 		} finally {
